@@ -6,4 +6,4 @@ Generate entity for each server model class which implements INotifyPropertyChan
 
 Status
 =================
-Developing - no release yet (after release binary find will be available on NuGet).
+Developing - no release yet (after release binary files will be available on NuGet).
