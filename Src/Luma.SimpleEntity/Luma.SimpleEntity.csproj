@@ -1,0 +1,232 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B33BF27F-7DF7-46FF-A1DA-F12A873E124F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Luma.SimpleEntity</RootNamespace>
+    <AssemblyName>Luma.SimpleEntity</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <ErrorReport>prompt</ErrorReport>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>TRACE;DEBUG;SERVERFX;NET40;DBCONTEXT</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;SERVERFX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">
+    <DefineConstants>$(DefineConstants);NET40</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\EntityFramework.6.1.1\lib\net40\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\EntityFramework.6.1.1\lib\net40\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="system" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.Runtime.Serialization">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceModel">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.ServiceModel.Web" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyUtilities.cs" />
+    <Compile Include="MSBuild\CleanClientFilesTask.cs" />
+    <Compile Include="ClientProxyFixupCodeDomVisitor.cs" />
+    <Compile Include="ClientCodeGenerationOptions.cs" />
+    <Compile Include="ClientCodeGenerationDispatcher.cs" />
+    <Compile Include="CodeDomClientCodeGenerator.cs">
+    </Compile>
+    <Compile Include="CodeDomVisitor.cs" />
+    <Compile Include="CodeGenerationHost.cs" />
+    <Compile Include="CodeGenUtilities.cs" />
+    <Compile Include="CodeMemberShareKind.cs" />
+    <Compile Include="MSBuild\CreateClientFilesTask.cs" />
+    <Compile Include="CSharpCodeDomClientCodeGenerator.cs" />
+    <Compile Include="Generators\DataContractProxyGenerator.cs" />
+    <Compile Include="DbContextUtilities.cs" />
+    <Compile Include="Generators\EntityProxyGenerator.cs" />
+    <Compile Include="DomainServiceClientCodeGeneratorAttribute.cs" />
+    <Compile Include="ICodeGenerationHost.cs" />
+    <Compile Include="ICodeGeneratorMetadata.cs" />
+    <Compile Include="IDomainServiceClientCodeGenerator.cs" />
+    <Compile Include="MSBuild\ILoggingService.cs" />
+    <Compile Include="IndentationLevel.cs">
+    </Compile>
+    <Compile Include="ISharedCodeService.cs" />
+    <Compile Include="Cache\LinkedServerProjectCache.cs" />
+    <Compile Include="MetadataPipeline\AttributeBuilderException.cs" />
+    <Compile Include="MetadataPipeline\AttributeDeclaration.cs" />
+    <Compile Include="MetadataPipeline\DataMemberAttributeBuilder.cs" />
+    <Compile Include="MetadataPipeline\EditableAttributeBuilder.cs" />
+    <Compile Include="MetadataPipeline\ICustomAttributeBuilder.cs" />
+    <Compile Include="Generators\NotificationMethodGenerator.cs">
+    </Compile>
+    <Compile Include="Pdb\PdbSourceFileProviderFactory.cs" />
+    <Compile Include="SharedCodeServiceParameters.cs" />
+    <Compile Include="SharedTypes\FilenameMap.cs" />
+    <Compile Include="SharedTypes\ISourceFileProvider.cs" />
+    <Compile Include="SharedTypes\ISourceFileProviderFactory.cs" />
+    <Compile Include="Pdb\SymStore\HResults.cs" />
+    <Compile Include="Pdb\SymStore\ISymBinder2.cs" />
+    <Compile Include="Pdb\SymStore\ISymConstant.cs" />
+    <Compile Include="Pdb\SymStore\ISymEncMethod.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\ISymENCUpdate.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\ISymReader2.cs" />
+    <Compile Include="Pdb\SymStore\ISymScope2.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\ISymSearchInfo.cs" />
+    <Compile Include="Pdb\SymStore\SymAccess.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\symbinder.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymConstant.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymDocument.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\symmethod.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymNamespace.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymReader.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymScope.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymSearchInfo.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\SymSearchPolicyAttributes.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Pdb\SymStore\symvariable.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="ProjectFileReader.cs" />
+    <Compile Include="Cache\ProjectSourceFileCache.cs" />
+    <Compile Include="MSBuild\ClientFilesTask.cs" />
+    <Compile Include="SharedTypes\CodeMemberKey.cs" />
+    <Compile Include="SharedTypes\SharedCodeService.cs" />
+    <Compile Include="SharedTypes\SourceFileLocationService.cs" />
+    <Compile Include="SharedTypes\ISourceFileLocationService.cs" />
+    <Compile Include="SharedTypes\SharedAssemblies.cs" />
+    <Compile Include="SharedTypes\SharedSourceFiles.cs" />
+    <Compile Include="SharedTypes\VirtualType.cs" />
+    <Compile Include="AppDomainUtilities.cs" />
+    <Compile Include="SourceInfo\SourceInfo.cs" />
+    <Compile Include="SourceInfo\SourceInfoSourceFileProviderFactory.cs" />
+    <Compile Include="TargetPlatform.cs" />
+    <Compile Include="TypeConstants.cs" />
+    <Compile Include="MetadataPipeline\CustomAttributeGenerator.cs" />
+    <Compile Include="MetadataPipeline\CustomValidationCustomAttributeBuilder.cs" />
+    <Compile Include="EntityCatalog.cs" />
+    <Compile Include="MetadataPipeline\DisplayCustomAttributeBuilder.cs" />
+    <Compile Include="MSBuild\ILogger.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Generators\ProxyGenerator.cs" />
+    <Compile Include="MetadataPipeline\RangeCustomAttributeBuilder.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="Resource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+    <Compile Include="MetadataPipeline\StandardCustomAttributeBuilder.cs" />
+    <Compile Include="MetadataPipeline\UIHintCustomAttributeBuilder.cs" />
+    <Compile Include="MetadataPipeline\ValidationCustomAttributeBuilder.cs" />
+    <Compile Include="VisualBasicCodeDomClientCodeGenerator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+      <CustomToolNamespace>OpenRiaServices.DomainServices.Tools</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Luma.SimpleEntity.Helpers\Luma.SimpleEntity.Helpers.csproj">
+      <Project>{af46130c-2f30-4d86-93ad-d8b7c0c891f2}</Project>
+      <Name>Luma.SimpleEntity.Helpers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Luma.SimpleEntity.Server\Luma.SimpleEntity.Server.csproj">
+      <Project>{3662e176-badc-4b9f-be94-e97c62afe456}</Project>
+      <Name>Luma.SimpleEntity.Server</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Pdb\ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Luma.SimpleEntity.Client.targets">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Condition="Exists('$(FeaturePackageInfrastructure)\bin\AutomaticAssemblyFileVersion.targets')" Project="$(FeaturePackageInfrastructure)\bin\AutomaticAssemblyFileVersion.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+</Project>
