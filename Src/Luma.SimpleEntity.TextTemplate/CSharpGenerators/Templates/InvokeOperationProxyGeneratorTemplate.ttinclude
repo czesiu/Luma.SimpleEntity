@@ -1,0 +1,142 @@
+﻿<#+
+
+/// <summary>
+/// Generates invoke operations.
+/// </summary>
+protected virtual void GenerateInvokeOperations()
+{
+	foreach(DomainOperationEntry operation in this.DomainServiceDescription.DomainOperationEntries.Where(p => p.Operation == DomainOperation.Invoke).OrderBy(m => m.Name))
+	{
+		// Call methods taking a bool for backwards compatibility
+		this.GenerateInvokeOperation(operation, true);
+		this.GenerateInvokeOperation(operation, false);
+		this.GenerateInvokeOperation(operation, InvokeKind.Async);
+	}
+}
+
+/// <summary>
+/// Generates an invoke operation.
+/// </summary>
+/// <param name="domainOperationEntry">The invoke operation to be generated.</param>
+/// <param name="generateCallback">If set to true, causes callback to be generated on the method.</param>
+protected virtual void GenerateInvokeOperation(DomainOperationEntry domainOperationEntry, bool generateCallback)
+{
+	var invokeKind = generateCallback ? (InvokeKind.WithCallback) : (InvokeKind.WithoutCallback);
+	GenerateInvokeOperation(domainOperationEntry, invokeKind);
+}
+
+/// <summary>
+/// Generates an async invoke operation.
+/// </summary>
+/// <param name="domainOperationEntry">The invoke operation to be generated.</param>
+/// <param name="invokeKind">The type of invoke operation to be generated.</param>
+protected virtual void GenerateInvokeOperation(DomainOperationEntry domainOperationEntry, InvokeKind invokeKind)
+{	
+	this.GenerateInvokeOperationDeclaration(domainOperationEntry, invokeKind);
+
+	this.GenerateOpeningBrace();
+	this.GenerateInvokeMethodBody(domainOperationEntry, invokeKind);
+	this.GenerateClosingBrace();
+}
+
+private void GenerateInvokeOperationDeclaration(DomainOperationEntry domainOperationEntry, InvokeKind invokeKind)
+{
+	// First generate custom attributes for the qery method
+	IEnumerable<Attribute> methodAttributes = domainOperationEntry.Attributes.Cast<Attribute>();
+	this.GenerateAttributes(methodAttributes);
+	string invokeOperationReturnTypeName = this.GetInvokeMethodReturnTypeName(domainOperationEntry, invokeKind);
+	var name = domainOperationEntry.Name;
+
+	if(invokeKind == InvokeKind.Async)
+		name = name + "Async";
+#>
+public <#= invokeOperationReturnTypeName #> <#= name #>(
+<#+
+	this.GenerateParameterDeclaration(domainOperationEntry.Parameters, true);
+
+	if(invokeKind == InvokeKind.WithCallback)
+	{
+		if(domainOperationEntry.Parameters.Count() > 0)
+		{
+			#>, <#+
+		}
+#>
+Action<<#= invokeOperationReturnTypeName #>> callback, object userState
+<#+
+	}
+#>)
+<#+
+}
+
+private void GenerateInvokeMethodBody(DomainOperationEntry domainOperationEntry, InvokeKind invokeKind)
+{
+	string parameterDictionaryString = this.GenerateServiceOpMethodBody(domainOperationEntry, domainOperationEntry.Name);
+	this.GenerateInvokeMethodReturn(domainOperationEntry, parameterDictionaryString, invokeKind);
+}
+
+private void GenerateInvokeMethodReturn(DomainOperationEntry domainOperationEntry, string parameterDictionaryString, InvokeKind invokeKind)
+{
+	InvokeAttribute invokeAttribute = (InvokeAttribute)domainOperationEntry.OperationAttribute;
+	string returnTypeNameString = CodeGenUtilities.GetTypeName(CodeGenUtilities.TranslateType(domainOperationEntry.ReturnType));
+
+	if(invokeKind == InvokeKind.Async)
+	{
+		returnTypeNameString = (domainOperationEntry.ReturnType == typeof(void)) ? string.Empty : string.Format("<{0}>", returnTypeNameString);
+#>
+return this.InvokeOperationAsync<#= returnTypeNameString #>("<#= domainOperationEntry.Name #>", <#= parameterDictionaryString #>, 
+<#= CodeGenUtilities.GetBooleanString(invokeAttribute.HasSideEffects, true) #>);
+<#+
+	}
+	else
+	{
+#>
+return this.<#= this.GetInvokeMethodReturnTypeName(domainOperationEntry, invokeKind) #>("<#= domainOperationEntry.Name #>", typeof(<#= returnTypeNameString #>), <#= parameterDictionaryString #>, 
+<#= CodeGenUtilities.GetBooleanString(invokeAttribute.HasSideEffects, true) #>,
+<#+
+		if(invokeKind == InvokeKind.WithCallback)
+		{
+#>
+callback, userState);
+<#+
+		}
+		else
+		{
+#>
+null, null);
+<#+
+		}
+	}
+		
+}
+
+
+private string GenerateServiceOpMethodBody(DomainOperationEntry domainOperationEntry, string methodName)
+{
+	string parameterDictionaryName = "null";
+	DomainOperationParameter[] domainOperationEntryParameters = domainOperationEntry.Parameters.ToArray();
+	if(domainOperationEntryParameters.Length > 0)
+	{
+		parameterDictionaryName = "parameters";
+#>
+Dictionary<string, object> <#= parameterDictionaryName #> = new Dictionary<string, object>();			
+<#+
+		foreach(DomainOperationParameter paramInfo in domainOperationEntryParameters)
+		{
+			if (!this.RegisterEnumTypeIfNecessary(paramInfo.ParameterType, domainOperationEntry))
+            {
+				return String.Empty;
+			}
+			string paramName = CodeGenUtilities.GetSafeName(paramInfo.Name);
+#>
+<#= parameterDictionaryName #>.Add("<#= paramName #>", <#= paramName #>);
+<#+
+		}
+	}
+	
+#>
+this.ValidateMethod("<#= methodName #>", <#= parameterDictionaryName #>);
+<#+
+	return parameterDictionaryName;
+}
+
+#>

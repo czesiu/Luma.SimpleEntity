@@ -23,16 +23,16 @@ namespace Luma.SimpleEntity.Helpers
         /// <returns>A new <see cref="AttributeCollection"/> stripped of any attributes from the property's type.</returns>
         public static AttributeCollection ExplicitAttributes(this PropertyDescriptor propertyDescriptor)
         {
-            List<Attribute> attributes = new List<Attribute>(propertyDescriptor.Attributes.Cast<Attribute>());
-            AttributeCollection typeAttributes = TypeDescriptor.GetAttributes(propertyDescriptor.PropertyType);
-            bool removedAttribute = false;
+            var attributes = new List<Attribute>(propertyDescriptor.Attributes.Cast<Attribute>());
+            var typeAttributes = TypeDescriptor.GetAttributes(propertyDescriptor.PropertyType);
+            var removedAttribute = false;
             foreach (Attribute attr in typeAttributes)
             {
-                for (int i = attributes.Count - 1; i >= 0; --i)
+                for (var i = attributes.Count - 1; i >= 0; --i)
                 {
                     // We must use ReferenceEquals since attributes could Match if they are the same.
                     // Only ReferenceEquals will catch actual duplications.
-                    if (Object.ReferenceEquals(attr, attributes[i]))
+                    if (ReferenceEquals(attr, attributes[i]))
                     {
                         attributes.RemoveAt(i);
                         removedAttribute = true;
@@ -53,18 +53,18 @@ namespace Luma.SimpleEntity.Helpers
         /// <returns>A new <see cref="AttributeCollection"/> stripped of any incorrectly inherited attributes from the type.</returns>
         public static AttributeCollection Attributes(this Type type)
         {
-            AttributeCollection baseTypeAttributes = TypeDescriptor.GetAttributes(type.BaseType);
-            List<Attribute> typeAttributes = new List<Attribute>(TypeDescriptor.GetAttributes(type).Cast<Attribute>());
+            var baseTypeAttributes = TypeDescriptor.GetAttributes(type.BaseType);
+            var typeAttributes = new List<Attribute>(TypeDescriptor.GetAttributes(type).Cast<Attribute>());
             foreach (Attribute attr in baseTypeAttributes)
             {
-                AttributeUsageAttribute attributeUsageAtt = (AttributeUsageAttribute)TypeDescriptor.GetAttributes(attr)[typeof(AttributeUsageAttribute)];
+                var attributeUsageAtt = (AttributeUsageAttribute)TypeDescriptor.GetAttributes(attr)[typeof(AttributeUsageAttribute)];
                 if (attributeUsageAtt != null && !attributeUsageAtt.Inherited)
                 {
                     for (int i = typeAttributes.Count - 1; i >= 0; --i)
                     {
                         // We must use ReferenceEquals since attributes could Match if they are the same.
                         // Only ReferenceEquals will catch actual duplications.
-                        if (Object.ReferenceEquals(attr, typeAttributes[i]))
+                        if (ReferenceEquals(attr, typeAttributes[i]))
                         {
                             typeAttributes.RemoveAt(i);
                             break;

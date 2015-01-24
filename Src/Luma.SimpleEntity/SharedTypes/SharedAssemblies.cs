@@ -284,13 +284,13 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// <returns>The <see cref="Type"/> or <c>null</c> if it is not in one of the shared assemblies.</returns>
         private Type FindSharedType(string typeName)
         {
-            Type type = Type.GetType(typeName, /*throwOnError*/ false);
+            var type = Type.GetType(typeName, /*throwOnError*/ false);
             if (type != null)
             {
-                return this.FindSharedType(type);
+                return FindSharedType(type);
             }
 
-            foreach (Assembly assembly in this.Assemblies)
+            foreach (var assembly in Assemblies)
             {
                 // Utility autorecovers and logs known common exceptions
                 IEnumerable<Type> types = AssemblyUtilities.GetExportedTypes(assembly, this._logger);
@@ -314,10 +314,13 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// <returns>The equivalent type from the known assemblies, or null if not found</returns>
         private Type FindSharedType(Type type)
         {
-            foreach (Assembly assembly in this.Assemblies)
+            if (type.FullName == "SQLite.Net.Attributes.IgnoreAttribute")
+                return type;
+
+            foreach (var assembly in Assemblies)
             {
                 // Utility autorecovers and logs known common exceptions
-                IEnumerable<Type> types = AssemblyUtilities.GetExportedTypes(assembly, this._logger);
+                IEnumerable<Type> types = AssemblyUtilities.GetExportedTypes(assembly, _logger);
 
                 foreach (Type searchType in types)
                 {
@@ -339,15 +342,19 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </summary>
         private void LoadAssemblies()
         {
-            this._assemblies = new List<Assembly>();
-            Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
-            foreach (string file in this._assemblyFileNames)
+            _assemblies = new List<Assembly>();
+
+            var loadedAssemblies = new Dictionary<string, Assembly>();
+
+            _assemblyFileNames.Reverse();
+
+            foreach (string file in _assemblyFileNames)
             {
                 // Pass 1 -- load all the assemblies we have been given.  No referenced assemblies yet.
-                Assembly assembly = AssemblyUtilities.ReflectionOnlyLoadFrom(file, this._logger);
+                Assembly assembly = AssemblyUtilities.ReflectionOnlyLoadFrom(file, _logger);
                 if (assembly != null)
                 {
-                    this._assemblies.Add(assembly);
+                    _assemblies.Add(assembly);
 
                     // Keep track of loaded assemblies for next step
                     loadedAssemblies[assembly.FullName] = assembly;
@@ -355,9 +362,9 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
             }
 
             // Pass 2 -- recursively load all reference assemblies from the assemblies we loaded.
-            foreach (Assembly assembly in this._assemblies)
+            foreach (var assembly in _assemblies)
             {
-                AssemblyUtilities.ReflectionOnlyLoadReferences(assembly, this._assemblySearchPaths, loadedAssemblies, /*recursive*/ true, this._logger);
+                AssemblyUtilities.ReflectionOnlyLoadReferences(assembly, _assemblySearchPaths, loadedAssemblies, /*recursive*/ true, _logger);
             }
         }
     }

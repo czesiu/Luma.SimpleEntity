@@ -233,7 +233,7 @@ namespace Luma.SimpleEntity.MetadataPipeline
                         if (attributeDeclaration.HasErrors)
                         {
                             // Only generate comments if the attribute is a DataAnnotations attribute
-                            if (isDataAnnotationsAttribute)
+                            //if (isDataAnnotationsAttribute)
                             {
                                 // Ensure we've generated the attribute generation failure error header
                                 GenerateCustomAttributesErrorCommentHeader(comments, customCommentHeader, ref emittedErrorCommentHeader);

@@ -384,7 +384,7 @@ namespace Luma.SimpleEntity
                 }
 
                 // This particular exception may have loaded at least some types.  Capture what we can.
-                ReflectionTypeLoadException rtle = ex as ReflectionTypeLoadException;
+                var rtle = ex as ReflectionTypeLoadException;
                 if (rtle != null)
                 {
                     // They tell us the types they loaded -- but the array could have nulls where they failed
@@ -393,9 +393,9 @@ namespace Luma.SimpleEntity
                     // Show a warning message so user knows we have an issue
                     if (logger != null)
                     {
-                        StringBuilder sb = new StringBuilder();
-                        Exception[] loadExceptions = rtle.LoaderExceptions;
-                        foreach (Exception e in loadExceptions)
+                        var sb = new StringBuilder();
+                        var loadExceptions = rtle.LoaderExceptions;
+                        foreach (var e in loadExceptions)
                         {
                             sb.AppendLine(e.Message);
                         }
