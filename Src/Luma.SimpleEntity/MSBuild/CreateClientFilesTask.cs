@@ -133,7 +133,7 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                ITaskItem[] items = this._generatedFiles.ToArray();
+                ITaskItem[] items = _generatedFiles.ToArray();
                 return items;
             }
         }
@@ -149,7 +149,7 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                Dictionary<string, IList<string>> sharedFilesByProject = this.SharedFilesByProject;
+                Dictionary<string, IList<string>> sharedFilesByProject = SharedFilesByProject;
                 List<ITaskItem> result = new List<ITaskItem>();
                 foreach (IList<string> files in sharedFilesByProject.Values)
                 {
@@ -175,7 +175,7 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                return this._copiedFiles.ToArray();
+                return _copiedFiles.ToArray();
             }
         }
 
@@ -192,40 +192,40 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                return this.LinkedFilesNormalized.Select<string, ITaskItem>(f => new TaskItem(f)).ToArray();
+                return LinkedFilesNormalized.Select<string, ITaskItem>(f => new TaskItem(f)).ToArray();
             }
         }
 
         /// <summary>
         /// Gets the root namespace of the server project.
         /// </summary>
-        internal string ServerProjectRootNameSpace
+        public string ServerProjectRootNameSpace
         {
             get
             {
-                if (this._serverRootNamespace == null)
+                if (_serverRootNamespace == null)
                 {
-                    ProjectFileReader reader = this.ProjectFileReader;
-                    this._serverRootNamespace = reader.GetPropertyValue(this.ServerProjectPath, "RootNamespace");
+                    ProjectFileReader reader = ProjectFileReader;
+                    _serverRootNamespace = reader.GetPropertyValue(ServerProjectPath, "RootNamespace");
                 }
-                return this._serverRootNamespace;
+                return _serverRootNamespace;
             }
         }
 
         /// <summary>
         /// Gets the server project's output path.
         /// </summary>
-        internal string ServerOutputPath
+        public string ServerOutputPath
         {
             get
             {
-                if (this._serverOutputPath == null)
+                if (_serverOutputPath == null)
                 {
-                    ProjectFileReader reader = this.ProjectFileReader;
-                    string path = reader.GetPropertyValue(this.ServerProjectPath, "OutputPath");
-                    this._serverOutputPath = GetFullPathRelativeToDirectory(path, this.ServerProjectDirectory);
+                    ProjectFileReader reader = ProjectFileReader;
+                    string path = reader.GetPropertyValue(ServerProjectPath, "OutputPath");
+                    _serverOutputPath = GetFullPathRelativeToDirectory(path, ServerProjectDirectory);
                 }
-                return this._serverOutputPath;
+                return _serverOutputPath;
             }
         }
 
@@ -237,11 +237,11 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._sharedFilesByProject == null)
+                if (_sharedFilesByProject == null)
                 {
-                    this._sharedFilesByProject = this.GetSharedFilesByProject();
+                    _sharedFilesByProject = GetSharedFilesByProject();
                 }
-                return this._sharedFilesByProject;
+                return _sharedFilesByProject;
             }
         }
 
@@ -253,20 +253,20 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._linkedFilesNormalized == null)
+                if (_linkedFilesNormalized == null)
                 {
                     // Compute the transitive closure of all source files visible to server and all its referenced projects
-                    IEnumerable<string> serverFiles = this.ServerProjectSourceFileCache.GetSourceFilesInAllProjects();
+                    IEnumerable<string> serverFiles = ServerProjectSourceFileCache.GetSourceFilesInAllProjects();
 
                     // Convert the full set of explicitly specified source files in the client project
-                    IEnumerable<string> clientFiles = this.NormalizedTaskItems(this.ClientSourceFiles, this.ClientProjectDirectory);
+                    IEnumerable<string> clientFiles = NormalizedTaskItems(ClientSourceFiles, ClientProjectDirectory);
 
                     // Intersect them and remove duplicates.  This permits links to flow in either direction or for
                     // multiple projects to refer to the same files.
-                    this._linkedFilesNormalized = clientFiles.Intersect(serverFiles, StringComparer.OrdinalIgnoreCase);
+                    _linkedFilesNormalized = clientFiles.Intersect(serverFiles, StringComparer.OrdinalIgnoreCase);
                 }
 
-                return this._linkedFilesNormalized;
+                return _linkedFilesNormalized;
             }
         }
 
@@ -277,15 +277,15 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._clientReferenceAssembliesNormalized == null)
+                if (_clientReferenceAssembliesNormalized == null)
                 {
                     // Expand to full paths
-                    IEnumerable<string> currentRefs = this.NormalizedTaskItems(this.ClientReferenceAssemblies, this.ClientProjectDirectory);
+                    IEnumerable<string> currentRefs = NormalizedTaskItems(ClientReferenceAssemblies, ClientProjectDirectory);
 
                     // Remove duplicates and non-existant files
-                    this._clientReferenceAssembliesNormalized = currentRefs.Distinct(StringComparer.OrdinalIgnoreCase).Where(f => File.Exists(f)).ToArray();
+                    _clientReferenceAssembliesNormalized = currentRefs.Distinct(StringComparer.OrdinalIgnoreCase).Where(f => File.Exists(f)).ToArray();
                 }
-                return this._clientReferenceAssembliesNormalized;
+                return _clientReferenceAssembliesNormalized;
             }
         }
 
@@ -295,11 +295,11 @@ namespace Luma.SimpleEntity
         /// <value>
         /// This list is a concatenation of <see cref="GeneratedFiles"/> and <see cref="CopiedFiles"/>.
         /// </value>
-        internal IEnumerable<ITaskItem> OutputFiles
+        public IEnumerable<ITaskItem> OutputFiles
         {
             get
             {
-                return this.GeneratedFiles.Concat(this.CopiedFiles);
+                return GeneratedFiles.Concat(CopiedFiles);
             }
         }
 
@@ -311,17 +311,17 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._clientAssemblyPathsNormalized == null)
+                if (_clientAssemblyPathsNormalized == null)
                 {
-                    ITaskItem[] taskItems = this.ClientAssemblySearchPaths;
+                    ITaskItem[] taskItems = ClientAssemblySearchPaths;
 
                     // If the user specified search paths, honor those.
-                    // If the user did not specify anything, use the default Silverlight paths
-                    this._clientAssemblyPathsNormalized = (taskItems == null)
+                    // If the user did not specify anything, use the default Client framework paths
+                    _clientAssemblyPathsNormalized = (taskItems == null)
                                                             ? new string[0]
-                                                            : this.NormalizedTaskItems(taskItems, this.ClientProjectDirectory);
+                                                            : NormalizedTaskItems(taskItems, ClientProjectDirectory);
                 }
-                return this._clientAssemblyPathsNormalized;
+                return _clientAssemblyPathsNormalized;
             }
         }
 
@@ -333,7 +333,7 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                string str = this.UseFullTypeNames;
+                string str = UseFullTypeNames;
                 bool result;
                 if (!string.IsNullOrEmpty(str) && Boolean.TryParse(str, out result))
                 {
@@ -347,17 +347,20 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if(string.IsNullOrEmpty(ClientFrameworkPath))
-                    return TargetPlatform.Unknown;
+                if (!string.IsNullOrEmpty(ClientFrameworkPath))
+                {
+                    if (ClientFrameworkPath.IndexOf("Silverlight", StringComparison.InvariantCultureIgnoreCase) != -1)
+                        return TargetPlatform.Silverlight;
 
-                if (ClientFrameworkPath.IndexOf("Silverlight", StringComparison.InvariantCultureIgnoreCase) != -1)
-                    return TargetPlatform.Silverlight;
-                if (ClientFrameworkPath.IndexOf(".NETPortable", StringComparison.InvariantCultureIgnoreCase) != -1)
-                    return TargetPlatform.Portable;
-                if (ClientFrameworkPath.IndexOf(".NETFramework", StringComparison.InvariantCultureIgnoreCase) != -1)
-                    return TargetPlatform.Desktop;
-                if (ClientFrameworkPath.IndexOf(".NETCore", StringComparison.InvariantCultureIgnoreCase) != -1)
-                    return TargetPlatform.Win8;
+                    if (ClientFrameworkPath.IndexOf(".NETPortable", StringComparison.InvariantCultureIgnoreCase) != -1)
+                        return TargetPlatform.Portable;
+
+                    if (ClientFrameworkPath.IndexOf(".NETFramework", StringComparison.InvariantCultureIgnoreCase) != -1)
+                        return TargetPlatform.Desktop;
+
+                    if (ClientFrameworkPath.IndexOf(".NETCore", StringComparison.InvariantCultureIgnoreCase) != -1)
+                        return TargetPlatform.Win8;
+                }
 
                 return TargetPlatform.Unknown;
             }
@@ -367,11 +370,11 @@ namespace Luma.SimpleEntity
         /// Gets a value indicating whether the server project file has been specified
         /// and exists on disk.
         /// </summary>
-        internal bool IsServerProjectAvailable
+        public bool IsServerProjectAvailable
         {
             get
             {
-                string serverProject = this.ServerProjectPath;
+                string serverProject = ServerProjectPath;
                 return !string.IsNullOrEmpty(serverProject) && File.Exists(serverProject);
             }
         }
@@ -387,11 +390,11 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._projectFileReader == null)
+                if (_projectFileReader == null)
                 {
-                    this._projectFileReader = new ProjectFileReader(/*ILogger*/ this);
+                    _projectFileReader = new ProjectFileReader(/*ILogger*/ this);
                 }
-                return this._projectFileReader;
+                return _projectFileReader;
             }
         }
 
@@ -402,17 +405,17 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._serverProjectDirectory == null)
+                if (_serverProjectDirectory == null)
                 {
-                    if (this.ServerProjectPath == null)
+                    if (ServerProjectPath == null)
                     {
-                        this.LogError(string.Format(CultureInfo.CurrentCulture, Resource.ProjectPath_Argument_Required, "ServerProjectPath"));
+                        LogError(string.Format(CultureInfo.CurrentCulture, Resource.ProjectPath_Argument_Required, "ServerProjectPath"));
                         return string.Empty;
                     }
                     // The server project may be relative to the current project.  Allow for that.
-                    this._serverProjectDirectory = Path.GetDirectoryName(this.GetFullPathRelativeToDirectory(this.ServerProjectPath, this.ClientProjectDirectory));
+                    _serverProjectDirectory = Path.GetDirectoryName(GetFullPathRelativeToDirectory(ServerProjectPath, ClientProjectDirectory));
                 }
-                return this._serverProjectDirectory;
+                return _serverProjectDirectory;
             }
         }
 
@@ -425,7 +428,7 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                return this.Language.Equals("C#", StringComparison.OrdinalIgnoreCase) ? "cs" : "vb";
+                return Language.Equals("C#", StringComparison.OrdinalIgnoreCase) ? "cs" : "vb";
             }
         }
 
@@ -437,11 +440,11 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._serverProjectSourceFileCache == null)
+                if (_serverProjectSourceFileCache == null)
                 {
-                    this._serverProjectSourceFileCache = new ProjectSourceFileCache(this.ServerProjectPath, this.SourceFileListPath(), /*ILogger*/this, this.ProjectFileReader);
+                    _serverProjectSourceFileCache = new ProjectSourceFileCache(ServerProjectPath, SourceFileListPath(), /*ILogger*/this, ProjectFileReader);
                 }
-                return this._serverProjectSourceFileCache;
+                return _serverProjectSourceFileCache;
             }
         }
 
@@ -453,11 +456,11 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._linkedServerProjectCache == null)
+                if (_linkedServerProjectCache == null)
                 {
-                    this._linkedServerProjectCache = new LinkedServerProjectCache(this.ClientProjectPath, this.LinkedServerProjectsPath(), /*ILogger*/this, this.ProjectFileReader);
+                    _linkedServerProjectCache = new LinkedServerProjectCache(ClientProjectPath, LinkedServerProjectsPath(), /*ILogger*/this, ProjectFileReader);
                 }
-                return this._linkedServerProjectCache;
+                return _linkedServerProjectCache;
             }
         }
 
@@ -471,14 +474,14 @@ namespace Luma.SimpleEntity
             // Note that these fields are explicitly left alone after execution
             // because MSBuild will consume them as the task outputs after invoking
             // the execute method.
-            this._generatedFiles.Clear();
-            this._copiedFiles.Clear();
-            this._sharedFilesByProject = null;
-            this._linkedFilesNormalized = null;
-            this._serverProjectDirectory = null;
-            this._clientAssemblyPathsNormalized = null;
-            this._clientReferenceAssembliesNormalized = null;
-            this._serverOutputPath = null;
+            _generatedFiles.Clear();
+            _copiedFiles.Clear();
+            _sharedFilesByProject = null;
+            _linkedFilesNormalized = null;
+            _serverProjectDirectory = null;
+            _clientAssemblyPathsNormalized = null;
+            _clientReferenceAssembliesNormalized = null;
+            _serverOutputPath = null;
 
             try
             {
@@ -486,56 +489,56 @@ namespace Luma.SimpleEntity
                 stopWatch.Start();
 
                 // Log a startup message describing the project for which we are generating code
-                this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Generating_Proxies, Path.GetFileName(this.ClientProjectPath)));
+                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Generating_Proxies, Path.GetFileName(ClientProjectPath)));
 
-                this.DeleteCodeGenMetafilesIfInvalid();
+                DeleteCodeGenMetafilesIfInvalid();
 
                 // Copy shared files and generate proxies -- but only if the server project exists.
                 // We do the copy first so that we know which files are shared between projects
-                if (this.IsServerProjectAvailable)
+                if (IsServerProjectAvailable)
                 {
-                    this.CopySharedFiles();
-                    this.GenerateClientProxies();
+                    CopySharedFiles();
+                    GenerateClientProxies();
                 }
 
                 // Remove any files which we generated on a prior run but did not generate now
-                this.PurgeOrphanFiles();
+                PurgeOrphanFiles();
 
                 // Prepare a file list containing our list of generated files -- used in clean and subsequent build.
                 // This list is computed every time, even for no-change builds, so we always write it.
-                this.WriteFileList();
+                WriteFileList();
 
                 // Write out our cache of source files in other projects.
-                if (!this.ServerProjectSourceFileCache.IsFileCacheCurrent)
+                if (!ServerProjectSourceFileCache.IsFileCacheCurrent)
                 {
-                    if (this.SafeFolderCreate(Path.GetDirectoryName(this.SourceFileListPath())))
+                    if (SafeFolderCreate(Path.GetDirectoryName(SourceFileListPath())))
                     {
-                        this.ServerProjectSourceFileCache.SaveCacheToFile();
+                        ServerProjectSourceFileCache.SaveCacheToFile();
                     }
                 }
 
                 // Write out our cache of Open RIA Services Links
-                if (!this.LinkedServerProjectCache.IsFileCacheCurrent)
+                if (!LinkedServerProjectCache.IsFileCacheCurrent)
                 {
-                    if (this.SafeFolderCreate(Path.GetDirectoryName(this.LinkedServerProjectsPath())))
+                    if (SafeFolderCreate(Path.GetDirectoryName(LinkedServerProjectsPath())))
                     {
-                        this.LinkedServerProjectCache.SaveCacheToFile();
+                        LinkedServerProjectCache.SaveCacheToFile();
                     }
                 }
 
                 double secondsAsDouble = stopWatch.ElapsedMilliseconds / 1000.0;
                 string executionTimeMessage = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Execution_Time, secondsAsDouble);
-                this.LogMessage(executionTimeMessage);
+                LogMessage(executionTimeMessage);
             }
             finally
             {
                 // Discard our resources.  This will explicitly dispose
                 // any IDisposable objects.
-                this.ReleaseResources();
+                ReleaseResources();
             }
 
             // Any error sent to the log constitutes failure
-            return !this.HasLoggedErrors;
+            return !HasLoggedErrors;
         }
 
         /// <summary>
@@ -543,7 +546,7 @@ namespace Luma.SimpleEntity
         /// </summary>
         private void DeleteCodeGenMetafilesIfInvalid()
         {
-            string fileListFile = this.FileListPath();
+            string fileListFile = FileListPath();
 
             // This runs only if we have a file list from a prior run
             if (!String.IsNullOrEmpty(fileListFile) && File.Exists(fileListFile))
@@ -558,7 +561,7 @@ namespace Luma.SimpleEntity
                     {
                         // If the project path is different from the current client project path, then it means the project was copied from a different location. 
                         // So purge the breadcrumb files from the previous build in the previous location.
-                        if (string.IsNullOrEmpty(projectPath) || !string.Equals(projectPath, this.ClientProjectDirectory, StringComparison.OrdinalIgnoreCase))
+                        if (string.IsNullOrEmpty(projectPath) || !string.Equals(projectPath, ClientProjectDirectory, StringComparison.OrdinalIgnoreCase))
                         {
                             isNewBuildLocation = true;
                         }
@@ -567,7 +570,7 @@ namespace Luma.SimpleEntity
 
                 if (isNewBuildLocation)
                 {
-                    this.DeleteCodeGenMetafileLists();
+                    DeleteCodeGenMetafileLists();
                 }
             }
         }
@@ -583,16 +586,16 @@ namespace Luma.SimpleEntity
         /// <para>In all success paths, the client proxy file will be added to the list of generated
         /// files so the custom targets file can add them to the @Compile collection.</para>
         /// </remarks>
-        internal void GenerateClientProxies()
+        public void GenerateClientProxies()
         {
-            IEnumerable<string> assemblies = this.GetServerAssemblies();
-            IEnumerable<string> references = this.GetReferenceAssemblies();
+            var assemblies = GetServerAssemblies();
+            var references = GetReferenceAssemblies();
 
             // We will load all input and reference assemblies
-            IEnumerable<string> assembliesToLoad = assemblies.Concat(references);
+            var assembliesToLoad = assemblies.Concat(references);
 
             // It is a failure if any of the reference assemblies are missing
-            if (!this.EnsureAssembliesExist(references))
+            if (!EnsureAssembliesExist(references))
             {
                 return;
             }
@@ -601,22 +604,22 @@ namespace Luma.SimpleEntity
             // (it is currently a collection to be consistent with MSBuild item collections).
             // If there is no output assembly, log a warning.
             // We consider this non-fatal because an Intellisense build can trivially
-            // encounter this immediately after creating a new Open Ria Services application
+            // encounter this immediately after creating a new Simple Entity application
             string assemblyFile = assemblies.FirstOrDefault();
             if (string.IsNullOrEmpty(assemblyFile) || !File.Exists(assemblyFile))
             {
-                string serverProjectFile = Path.GetFileName(this.ServerProjectPath);
-                this.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_No_Input_Assemblies, serverProjectFile));
+                string serverProjectFile = Path.GetFileName(ServerProjectPath);
+                LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_No_Input_Assemblies, serverProjectFile));
                 return;
             }
 
             // Make it an absolute path and append the language-specific extension
-            string generatedFileName = Path.Combine(this.GeneratedCodePath, this.GenerateProxyFileName(assemblyFile));
+            string generatedFileName = Path.Combine(GeneratedCodePath, GenerateProxyFileName(assemblyFile));
 
             // We maintain cached lists of references we used in prior builds.
             // Determine whether our current inputs are different from the last build that generated code.
-            bool serverReferencesChanged = this.HaveReferencesChanged(this.ServerReferenceListPath(), assembliesToLoad, this.ServerProjectDirectory);
-            bool clientReferencesChanged = this.HaveReferencesChanged(this.ClientReferenceListPath(), this.ClientReferenceAssembliesNormalized, this.ClientProjectDirectory);
+            bool serverReferencesChanged = HaveReferencesChanged(ServerReferenceListPath(), assembliesToLoad, ServerProjectDirectory);
+            bool clientReferencesChanged = HaveReferencesChanged(ClientReferenceListPath(), ClientReferenceAssembliesNormalized, ClientProjectDirectory);
 
             // Any change in the assembly references for either client or server are grounds to re-gen code.
             // Developer note -- we use the fact that the inputs have changed to trigger the full code-gen pass.
@@ -638,9 +641,9 @@ namespace Luma.SimpleEntity
                 // file has been touched since we last analyzed our server references, it is an indication
                 // the user modified the generated file.  So force a code gen and
                 // force a rewrite of the server reference file to short circuit this same code next build.
-                if (!needToGenerate && fileExists && File.Exists(this.ServerReferenceListPath()))
+                if (!needToGenerate && fileExists && File.Exists(ServerReferenceListPath()))
                 {
-                    if (File.GetLastWriteTime(generatedFileName) > File.GetLastWriteTime(this.ServerReferenceListPath()))
+                    if (File.GetLastWriteTime(generatedFileName) > File.GetLastWriteTime(ServerReferenceListPath()))
                     {
                         needToGenerate = true;
                         serverReferencesChanged = true;
@@ -730,18 +733,18 @@ namespace Luma.SimpleEntity
             // This also prevents adding it to the list if it was deleted above
             if (File.Exists(generatedFileName))
             {
-                this.AddGeneratedFile(generatedFileName);
+                AddGeneratedFile(generatedFileName);
             }
 
             // Write out reference lists if they have changed
             if (serverReferencesChanged)
             {
-                this.WriteReferenceList(this.ServerReferenceListPath(), assembliesToLoad, this.ServerProjectDirectory);
+                WriteReferenceList(ServerReferenceListPath(), assembliesToLoad, ServerProjectDirectory);
             }
 
             if (clientReferencesChanged)
             {
-                this.WriteReferenceList(this.ClientReferenceListPath(), this.ClientReferenceAssembliesNormalized, this.ClientProjectDirectory);
+                WriteReferenceList(ClientReferenceListPath(), ClientReferenceAssembliesNormalized, ClientProjectDirectory);
             }
 
             return;
@@ -754,17 +757,17 @@ namespace Luma.SimpleEntity
         /// as files found via file links.
         /// </remarks>
         /// <returns>The set of absolute file names that are the files both client and server see</returns>
-        internal IEnumerable<string> GetSharedAndLinkedFiles()
+        public IEnumerable<string> GetSharedAndLinkedFiles()
         {
             // Get *all* files from the server and all its project references.
             // This is the raw list and is not constrained only to shared files or file links.
-            IEnumerable<string> serverFiles = this.ServerProjectSourceFileCache.GetSourceFilesInAllProjects();
+            IEnumerable<string> serverFiles = ServerProjectSourceFileCache.GetSourceFilesInAllProjects();
 
             // All *.shared.* files are automatically added to our set of known shared files
             IList<string> sharedFiles = new List<string>(serverFiles.Where(f => IsFileShared(f)));
 
             // Now get the set of linked files we find in common between the client and server
-            IEnumerable<string> linkedFiles = this.LinkedFilesNormalized;
+            IEnumerable<string> linkedFiles = LinkedFilesNormalized;
 
             // Return both collections as one
             return sharedFiles.Concat(linkedFiles);
@@ -848,7 +851,7 @@ namespace Luma.SimpleEntity
                     {
                         break;
                     }
-                    string refFileName = this.GetFullPathRelativeToDirectory(strings[i], projectDir);
+                    string refFileName = GetFullPathRelativeToDirectory(strings[i], projectDir);
                     string dateTimeAsString = strings[++i];
                     result[refFileName] = dateTimeAsString;
                 }
@@ -873,7 +876,7 @@ namespace Luma.SimpleEntity
             }
 
             // Read in the cache of reference assembly names and their timestamps
-            Dictionary<string, string> priorRefs = this.ReadReferenceList(fileName, projectDir);
+            Dictionary<string, string> priorRefs = ReadReferenceList(fileName, projectDir);
 
             // Look for any references that got dropped.  Grounds for saying "it changed"
             foreach (string reference in priorRefs.Keys)
@@ -923,16 +926,16 @@ namespace Luma.SimpleEntity
         /// </remarks>
         private void ReleaseResources()
         {
-            this._linkedServerProjectCache = null;
-            this._serverProjectSourceFileCache = null;
+            _linkedServerProjectCache = null;
+            _serverProjectSourceFileCache = null;
 
             // The ProjectFileReader is IDisposable and requires
             // explicit disposal.  Because it is created lazily
             // there is no scope for a traditional 'using' block.
-            if (this._projectFileReader != null)
+            if (_projectFileReader != null)
             {
-                this._projectFileReader.Dispose();
-                this._projectFileReader = null;
+                _projectFileReader.Dispose();
+                _projectFileReader = null;
             }
             }
 
@@ -947,7 +950,7 @@ namespace Luma.SimpleEntity
                 string pdbFile = Path.ChangeExtension(assemblyFile, "pdb");
                 if (!File.Exists(pdbFile))
                 {
-                    this.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_No_Pdb, assemblyFile));
+                    LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_No_Pdb, assemblyFile));
                 }
             }
         }
@@ -960,11 +963,11 @@ namespace Luma.SimpleEntity
         private void PurgeOrphanFiles()
         {
             // Get the list of files we wrote in a prior build.
-            IEnumerable<string> files = this.FilesPreviouslyWritten();
+            IEnumerable<string> files = FilesPreviouslyWritten();
 
             // Compute the list of all files we create, which includes the one
             // we generate and all the *.shared.* files we copied
-            IEnumerable<ITaskItem> outputFiles = this.OutputFiles;
+            IEnumerable<ITaskItem> outputFiles = OutputFiles;
 
             // Now, scan the list and determine which ones went away
             foreach (string fileName in files)
@@ -978,16 +981,16 @@ namespace Luma.SimpleEntity
                     // If we did not generate this file on this run, delete it
                     if (!generatedFile)
                     {
-                        this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Deleting_Orphan, fileName));
-                        this.DeleteFileFromVS(fileName);
-                        this.DeleteFolderIfEmpty(Path.GetDirectoryName(fileName));
+                        LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Deleting_Orphan, fileName));
+                        DeleteFileFromVS(fileName);
+                        DeleteFolderIfEmpty(Path.GetDirectoryName(fileName));
                     }
                 }
                 else
                 {
                     // If the file was deleted outside of our control, we still take the opportunity
                     // to remove a residual empty folder
-                    this.DeleteFolderIfEmpty(Path.GetDirectoryName(fileName));
+                    DeleteFolderIfEmpty(Path.GetDirectoryName(fileName));
                 }
             }
         }
@@ -1000,8 +1003,8 @@ namespace Luma.SimpleEntity
             StringBuilder sb = new StringBuilder();
             StringBuilder logSb = new StringBuilder();
             //First line is the client project directory
-            sb.AppendLine(this.ClientProjectDirectory);
-            foreach (ITaskItem item in this.OutputFiles)
+            sb.AppendLine(ClientProjectDirectory);
+            foreach (ITaskItem item in OutputFiles)
             {
                 string relativeFilePath = GetPathRelativeToProjectDirectory(item.ItemSpec, ClientProjectDirectory);
                 sb.AppendLine(relativeFilePath);
@@ -1011,15 +1014,15 @@ namespace Luma.SimpleEntity
             string outputFileLines = sb.ToString();
             if (outputFileLines.Length > 0)
             {
-                this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_OutputFiles_Are, logSb));
+                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_OutputFiles_Are, logSb));
             }
 
-            string fileListFile = this.FileListPath();
-            if (this.FilesWereWritten && !string.IsNullOrEmpty(fileListFile))
+            string fileListFile = FileListPath();
+            if (FilesWereWritten && !string.IsNullOrEmpty(fileListFile))
             {
-                if (this.SafeFolderCreate(Path.GetDirectoryName(fileListFile)))
+                if (SafeFolderCreate(Path.GetDirectoryName(fileListFile)))
                 {
-                    this.SafeFileWrite(fileListFile, outputFileLines);
+                    SafeFileWrite(fileListFile, outputFileLines);
                 }
             }
         }
@@ -1046,9 +1049,9 @@ namespace Luma.SimpleEntity
 
             if (!string.IsNullOrEmpty(fileName))
             {
-                if (this.SafeFolderCreate(Path.GetDirectoryName(fileName)))
+                if (SafeFolderCreate(Path.GetDirectoryName(fileName)))
                 {
-                    this.SafeFileWrite(fileName, outputFileLines);
+                    SafeFileWrite(fileName, outputFileLines);
                 }
             }
         }
@@ -1067,7 +1070,7 @@ namespace Luma.SimpleEntity
 
             // Get all *.shared.* and linked files in common between client and server.
             // These are consider "shared files" by the shared type service
-            parameters.SharedSourceFiles = this.GetSharedAndLinkedFiles().ToArray();
+            parameters.SharedSourceFiles = GetSharedAndLinkedFiles().ToArray();
 
             // Present the list of shared files to the user as a informational level log
             if (parameters.SharedSourceFiles.Any())
@@ -1078,11 +1081,11 @@ namespace Luma.SimpleEntity
                     sb.AppendLine();
                     sb.Append("    " + file);
                 }
-                this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Shared_Files, sb.ToString()));
+                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Shared_Files, sb.ToString()));
             }
 
-            parameters.ClientAssemblies = this.NormalizedTaskItems(this.ClientReferenceAssemblies, this.ClientProjectDirectory).ToArray();
-            parameters.ClientAssemblyPathsNormalized = this.ClientAssemblyPathsNormalized.ToArray();
+            parameters.ClientAssemblies = NormalizedTaskItems(ClientReferenceAssemblies, ClientProjectDirectory).ToArray();
+            parameters.ClientAssemblyPathsNormalized = ClientAssemblyPathsNormalized.ToArray();
 
             // Convert the list of server assemblies into a search path for PDB's
             parameters.SymbolSearchPaths = serverAssemblies.Select(a => Path.GetDirectoryName(a)).ToArray();
@@ -1096,7 +1099,7 @@ namespace Luma.SimpleEntity
         /// <param name="fileName">The absolute path of a file.</param>
         private void AddGeneratedFile(string fileName)
         {
-            this._generatedFiles.Add(new TaskItem(fileName));
+            _generatedFiles.Add(new TaskItem(fileName));
         }
 
         /// <summary>
@@ -1105,7 +1108,7 @@ namespace Luma.SimpleEntity
         /// <param name="fileName">The absolute path of a file.</param>
         private void AddCopiedFile(string fileName)
         {
-            this._copiedFiles.Add(new TaskItem(fileName));
+            _copiedFiles.Add(new TaskItem(fileName));
         }
 
         /// <summary>
@@ -1121,25 +1124,25 @@ namespace Luma.SimpleEntity
             // the list of known "RIA Links" visible to all projects referenced by the client project.
             // We will not copy any files from a project visible though such a RIA Link, else we would
             // have 2 copies of the file in scope for the client.
-            HashSet<string> linkedServerProjects = new HashSet<string>(this.LinkedServerProjectCache.LinkedServerProjects, StringComparer.OrdinalIgnoreCase);
+            HashSet<string> linkedServerProjects = new HashSet<string>(LinkedServerProjectCache.LinkedServerProjects, StringComparer.OrdinalIgnoreCase);
 
             // Each separate project's set of files is copied under a unique folder under GeneratedCode.
             // This organizes them for the user and also avoids overwrite conflicts for duplicately named files
-            foreach (string projectPath in this.ServerProjectSourceFileCache.GetAllKnownProjects())
+            foreach (string projectPath in ServerProjectSourceFileCache.GetAllKnownProjects())
             {
-                bool checkedRiaLink = false;
+                bool checkedServerLink = false;
                 bool skipThisProject = false;
 
-                IEnumerable<string> filesToCopy = this.ServerProjectSourceFileCache.GetSourceFilesInProject(projectPath);
+                IEnumerable<string> filesToCopy = ServerProjectSourceFileCache.GetSourceFilesInProject(projectPath);
                 foreach (string file in filesToCopy)
                 {
                     if (!skipThisProject && IsFileShared(file) && File.Exists(file))
                     {
                         // We defer checking for redundant RIA Links until we know we have a shared file
                         // that needs to be copied.  This cuts down on the message chatter.
-                        if (!checkedRiaLink)
+                        if (!checkedServerLink)
                         {
-                            checkedRiaLink = true;
+                            checkedServerLink = true;
 
                             // If some project visible to the client has a RIA Link to this project,
                             // do *NOT* copy its files, or we will have multiple copies
@@ -1147,8 +1150,8 @@ namespace Luma.SimpleEntity
                             {
                                 // Get the name of the first client project with a RIA Link to that project.
                                 // More might exist, but for the purpose of this message to the user, the first is sufficient.
-                                string sourceProject = this.LinkedServerProjectCache.GetLinkedServerProjectSources(projectPath).FirstOrDefault();
-                                this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.RIA_Link_Prevents_Copy, projectPath, sourceProject));
+                                string sourceProject = LinkedServerProjectCache.GetLinkedServerProjectSources(projectPath).FirstOrDefault();
+                                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.SimpleEntity_Link_Prevents_Copy, projectPath, sourceProject));
                                 skipThisProject = true;
                                 continue;
                             }
@@ -1175,7 +1178,7 @@ namespace Luma.SimpleEntity
         /// </remarks>
         private void CopySharedFiles()
         {
-            Dictionary<string, IList<string>> sharedFilesByProject = this.SharedFilesByProject;
+            Dictionary<string, IList<string>> sharedFilesByProject = SharedFilesByProject;
             HashSet<string> fileHash = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             // Each separate project's set of files is copied under a unique folder under GeneratedCode.
@@ -1185,7 +1188,7 @@ namespace Luma.SimpleEntity
                 string projectDirectory = Path.GetDirectoryName(projectPath);
                 DirectoryInfo sourceDirectory = new DirectoryInfo(projectDirectory);
                 string projectShortName = Path.GetFileNameWithoutExtension(projectPath);
-                bool isServerProject = String.Equals(projectDirectory, this.ServerProjectDirectory, StringComparison.OrdinalIgnoreCase);
+                bool isServerProject = String.Equals(projectDirectory, ServerProjectDirectory, StringComparison.OrdinalIgnoreCase);
 
                 IEnumerable<string> filesToCopy = sharedFilesByProject[projectPath];
                 foreach (string file in filesToCopy)
@@ -1193,11 +1196,11 @@ namespace Luma.SimpleEntity
                     if (!fileHash.Contains(file))
                     {
                         // Defer creation of generated code folder until we know we must do work.
-                        string generatedCodeFolder = this.GeneratedCodePath;
+                        string generatedCodeFolder = GeneratedCodePath;
                         string destinationPath = isServerProject ? generatedCodeFolder : Path.Combine(generatedCodeFolder, projectShortName);
                         DirectoryInfo destinationDirectory = new DirectoryInfo(destinationPath);
 
-                        this.CopyFile(file, sourceDirectory, destinationDirectory);
+                        CopyFile(file, sourceDirectory, destinationDirectory);
                         fileHash.Add(file);
                     }
                 }
@@ -1219,33 +1222,33 @@ namespace Luma.SimpleEntity
             string destinationFolder = Path.GetDirectoryName(destinationFilePath);
 
             // Create the destination folder as late as possible
-            if (!this.SafeFolderCreate(destinationFolder))
+            if (!SafeFolderCreate(destinationFolder))
             {
                 return false;
             }
 
             // Keep track of all files that are logically copied, even if we find it is current
-            this.AddCopiedFile(destinationFilePath);
+            AddCopiedFile(destinationFilePath);
 
             // Don't do any work unless the inputs are newer.
             // Note: we are sensitive to a VS TextBuffer being dirty as being newer
-            if (this.IsFileWriteTimeDifferent(sourceFilePath, destinationFilePath))
+            if (IsFileWriteTimeDifferent(sourceFilePath, destinationFilePath))
             {
-                this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Copying_File, sourceFilePath, destinationDirectory.FullName));
+                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Copying_File, sourceFilePath, destinationDirectory.FullName));
 
                 // Use the safe form of the copy to guarantee the folder exists and the readonly attribute is reset.
                 // Note: we use a direct file-to-file copy here for 2 reasons:
                 //  1. We want the file write time preserved for later comparison
                 //  2. We want to copy only files on disk, not unsaved edits in VS text buffers, otherwise
                 //     the user could cancel the edit and leave copied files that don't reflect what's on disk.
-                this.SafeFileCopy(sourceFilePath, destinationFilePath, true);
+                SafeFileCopy(sourceFilePath, destinationFilePath, true);
 
                 copiedFile = true;
             }
             else
             {
                 // Log a message telling user we are skipping the copy because the inputs are older than the generated code
-                this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Skipping_Copy, destinationFilePath));
+                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Skipping_Copy, destinationFilePath));
             }
             return copiedFile;
         }
@@ -1257,12 +1260,12 @@ namespace Luma.SimpleEntity
         private IEnumerable<string> GetServerAssemblies()
         {
             List<string> assemblies = new List<string>();
-            foreach (ITaskItem item in this.ServerAssemblies)
+            foreach (ITaskItem item in ServerAssemblies)
             {
                 string assemblyName = item.ItemSpec;
                 if (!Path.IsPathRooted(assemblyName))
                 {
-                    assemblyName = Path.GetFullPath(Path.Combine(this.ClientProjectDirectory, assemblyName));
+                    assemblyName = Path.GetFullPath(Path.Combine(ClientProjectDirectory, assemblyName));
                 }
                 assemblies.Add(assemblyName);
             }
@@ -1276,14 +1279,14 @@ namespace Luma.SimpleEntity
         private IEnumerable<string> GetReferenceAssemblies()
         {
             List<string> assemblies = new List<string>();
-            if (this.ServerReferenceAssemblies != null)
+            if (ServerReferenceAssemblies != null)
             {
-                foreach (ITaskItem item in this.ServerReferenceAssemblies)
+                foreach (ITaskItem item in ServerReferenceAssemblies)
                 {
                     string assemblyName = item.ItemSpec;
                     if (!Path.IsPathRooted(assemblyName))
                     {
-                        assemblyName = Path.GetFullPath(Path.Combine(this.ClientProjectDirectory, assemblyName));
+                        assemblyName = Path.GetFullPath(Path.Combine(ClientProjectDirectory, assemblyName));
                     }
                     assemblies.Add(assemblyName);
                 }
@@ -1303,7 +1306,7 @@ namespace Luma.SimpleEntity
             {
                 if (!File.Exists(assembly))
                 {
-                    this.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Input_Assembly_Not_Found, assembly));
+                    LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Input_Assembly_Not_Found, assembly));
                     return false;
                 }
             }
@@ -1327,7 +1330,7 @@ namespace Luma.SimpleEntity
                 sb.Append(Path.GetFileNameWithoutExtension(serverAssemblyName));
             }
             sb.Append(".g.");
-            sb.Append(this.FileExtension);
+            sb.Append(FileExtension);
             return sb.ToString();
         }
 
@@ -1345,7 +1348,7 @@ namespace Luma.SimpleEntity
                 return new string[0];
             }
 
-            return items.Select<ITaskItem, string>(ti => this.GetFullPathRelativeToDirectory(ti.ItemSpec, directory));
+            return items.Select(ti => GetFullPathRelativeToDirectory(ti.ItemSpec, directory));
         }
 
         /// <summary>
@@ -1356,17 +1359,17 @@ namespace Luma.SimpleEntity
             // Let the base normalize the client path first since we depend on it
             base.NormalizeProjectPaths();
 
-            if (!string.IsNullOrEmpty(this.ServerProjectPath) && !Path.IsPathRooted(this.ServerProjectPath))
+            if (!string.IsNullOrEmpty(ServerProjectPath) && !Path.IsPathRooted(ServerProjectPath))
             {
-                this.ServerProjectPath = this.GetFullPathRelativeToDirectory(this.ServerProjectPath, this.ClientProjectDirectory);
+                ServerProjectPath = GetFullPathRelativeToDirectory(ServerProjectPath, ClientProjectDirectory);
             }
 
-            // If we detect a Open Ria Services  Link but cannot locate the specified server project, it probably
-            // means the user renamed or moved it.   Warn them of that and give a hint how to fix.
-            if (!this.IsServerProjectAvailable)
+            // If we detect a Simple Entity Link but cannot locate the specified server project, it probably
+            // means the user renamed or moved it. Warn them of that and give a hint how to fix.
+            if (!IsServerProjectAvailable)
             {
-                string clientProject = Path.GetFileName(this.ClientProjectPath);
-                this.LogError(string.Format(CultureInfo.CurrentCulture, Resource.Server_Project_File_Does_Not_Exist, clientProject, this.ServerProjectPath));
+                string clientProject = Path.GetFileName(ClientProjectPath);
+                LogError(string.Format(CultureInfo.CurrentCulture, Resource.Server_Project_File_Does_Not_Exist, clientProject, ServerProjectPath));
             }
         }
 
@@ -1380,41 +1383,41 @@ namespace Luma.SimpleEntity
 
             public CrossAppDomainLogger(ILoggingService underlyingLogger)
             {
-                this.baseLogger = underlyingLogger;
+                baseLogger = underlyingLogger;
             }
 
             public bool HasLoggedErrors
             {
-                get { return this.baseLogger.HasLoggedErrors; }
+                get { return baseLogger.HasLoggedErrors; }
             }
 
             public void LogError(string message)
             {
-                this.baseLogger.LogError(message);
+                baseLogger.LogError(message);
             }
             public void LogException(Exception ex)
             {
-                this.baseLogger.LogException(ex);
+                baseLogger.LogException(ex);
             }
 
             public void LogWarning(string message)
             {
-                this.baseLogger.LogWarning(message);
+                baseLogger.LogWarning(message);
             }
 
             public void LogMessage(string message)
             {
-                this.baseLogger.LogMessage(message);
+                baseLogger.LogMessage(message);
             }
 
             public void LogError(string message, string subCategory, string errorCode, string helpKeyword, string file, int lineNumber, int columnNumber, int endLineNumber, int endColumnNumber)
             {
-                this.baseLogger.LogError(message, subCategory, errorCode, helpKeyword, file, lineNumber, columnNumber, endLineNumber, endColumnNumber);
+                baseLogger.LogError(message, subCategory, errorCode, helpKeyword, file, lineNumber, columnNumber, endLineNumber, endColumnNumber);
             }
 
             public void LogWarning(string message, string subCategory, string errorCode, string helpKeyword, string file, int lineNumber, int columnNumber, int endLineNumber, int endColumnNumber)
             {
-                this.baseLogger.LogWarning(message, subCategory, errorCode, helpKeyword, file, lineNumber, columnNumber, endLineNumber, endColumnNumber);
+                baseLogger.LogWarning(message, subCategory, errorCode, helpKeyword, file, lineNumber, columnNumber, endLineNumber, endColumnNumber);
             }
         }
         #endregion // Nested Types

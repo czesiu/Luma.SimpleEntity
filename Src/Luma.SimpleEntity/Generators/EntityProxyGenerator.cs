@@ -12,7 +12,6 @@ using System.Runtime.Serialization;
 using Luma.SimpleEntity.Helpers;
 using Luma.SimpleEntity.MetadataPipeline;
 using Luma.SimpleEntity.Server;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity.Generators
 {
@@ -21,7 +20,7 @@ namespace Luma.SimpleEntity.Generators
     /// </summary>
     internal sealed class EntityProxyGenerator : DataContractProxyGenerator
     {
-        private readonly DomainServiceDescriptionAggregate _domainServiceDescriptionAggregate;
+        private readonly EntityDescriptionAggregate _entityDescriptionAggregate;
 
         readonly List<PropertyDescriptor> _keyProperties;
         private readonly Type _visibleBaseType;
@@ -31,25 +30,25 @@ namespace Luma.SimpleEntity.Generators
         /// </summary>
         /// <param name="proxyGenerator">The client proxy generator against which this will generate code.  Cannot be null.</param>
         /// <param name="entityType">The type of the entity.  Cannot be null.</param>
-        /// <param name="allDomainServiceDescriptions">Collection of all <see cref="EntityDescription"/> defined in this project</param>
-        /// <param name="typeMapping">A dictionary of <see cref="DomainService"/> and related entity types that maps to their corresponding client-side <see cref="CodeTypeReference"/> representations.</param>
-        public EntityProxyGenerator(CodeDomClientCodeGenerator proxyGenerator, Type entityType, ICollection<EntityDescription> allDomainServiceDescriptions, IDictionary<Type, CodeTypeDeclaration> typeMapping)
+        /// <param name="allEntityDescriptions">Collection of all <see cref="EntityDescription"/> defined in this project</param>
+        /// <param name="typeMapping">A dictionary of <see cref="Entity"/> and related entity types that maps to their corresponding client-side <see cref="CodeTypeReference"/> representations.</param>
+        public EntityProxyGenerator(CodeDomClientCodeGenerator proxyGenerator, Type entityType, ICollection<EntityDescription> allEntityDescriptions, IDictionary<Type, CodeTypeDeclaration> typeMapping)
             : base(proxyGenerator, entityType, typeMapping)
         {
-            this._domainServiceDescriptionAggregate = new DomainServiceDescriptionAggregate(allDomainServiceDescriptions.Where(dsd => dsd.EntityTypes.Contains(entityType)));
+            _entityDescriptionAggregate = new EntityDescriptionAggregate(allEntityDescriptions.Where(dsd => dsd.EntityTypes.Contains(entityType)));
 
             // Determine this entity's logical (visible) base type based on the type hierarchy
             // and list of known types.  Null meant it was already the root.
-            this._visibleBaseType = this._domainServiceDescriptionAggregate.GetEntityBaseType(this.Type);
+            _visibleBaseType = this._entityDescriptionAggregate.GetEntityBaseType(this.Type);
 
-            this._keyProperties = new List<PropertyDescriptor>();
+            _keyProperties = new List<PropertyDescriptor>();
         }
 
         protected override bool IsDerivedType
         {
             get
             {
-                return this._visibleBaseType != null;
+                return _visibleBaseType != null;
             }
         }
 
@@ -126,7 +125,7 @@ namespace Luma.SimpleEntity.Generators
                 // If the ultimate element type is not allowed, it's not acceptable, no matter whether
                 // this is an array, Nullable<T> or whatever
                 Type elementType = TypeUtility.GetElementType(propertyDescriptor.PropertyType);
-                if (!this._domainServiceDescriptionAggregate.EntityTypes.Contains(elementType) /*|| (propertyDescriptor.Attributes[typeof(AssociationAttribute)] == null)*/)
+                if (!this._entityDescriptionAggregate.EntityTypes.Contains(elementType) /*|| (propertyDescriptor.Attributes[typeof(AssociationAttribute)] == null)*/)
                 {
                     // If the base class says we can't generate the property, it is because the property is not serializable.
                     // The only other type entity would serialize is associations. Since it is not, return now.
@@ -188,7 +187,7 @@ namespace Luma.SimpleEntity.Generators
                     TypeUtility.GetElementType(propertyDescriptor.PropertyType) :
                     propertyDescriptor.PropertyType;
 
-            if (_domainServiceDescriptionAggregate.EntityTypes.Contains(associationType))
+            if (_entityDescriptionAggregate.EntityTypes.Contains(associationType))
             {
                 var thisKey = "Id";
                 var otherKey = "Id";
@@ -223,7 +222,7 @@ namespace Luma.SimpleEntity.Generators
 
         protected override IEnumerable<Type> GetDerivedTypes()
         {
-            return this._domainServiceDescriptionAggregate.EntityTypes.Where(t => t != this.Type && this.Type.IsAssignableFrom(t));
+            return this._entityDescriptionAggregate.EntityTypes.Where(t => t != this.Type && this.Type.IsAssignableFrom(t));
         }
 
         /// <summary>
@@ -232,10 +231,10 @@ namespace Luma.SimpleEntity.Generators
         /// <returns>Returns the summary comment content.</returns>
         protected override string GetSummaryComment()
         {
-            string comment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Entity_Class_Summary_Comment, this.Type.Name);
+            var comment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Entity_Class_Summary_Comment, this.Type.Name);
 
             // The entity is not shared, a simple comment is sufficient.
-            if (!this._domainServiceDescriptionAggregate.IsShared)
+            if (!_entityDescriptionAggregate.IsShared)
             {
                 return comment;
             }
@@ -245,9 +244,9 @@ namespace Luma.SimpleEntity.Generators
             comment += Environment.NewLine + sharedComment;
 
             // Add which contexts the entity is exposed from.
-            foreach (var domainServiceDescription in this._domainServiceDescriptionAggregate.EntityDescriptions)
+            foreach (var entityDescription in _entityDescriptionAggregate.EntityDescriptions)
             {
-                string domainContextComment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Entity_Class_Context_Summary_Comment, "DomainServiceProxyGenerator.DomainContextTypeName(domainServiceDescription)");
+                string domainContextComment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Entity_Class_Context_Summary_Comment, "EntityProxyGenerator.DomainContextTypeName(entityDescription)");
                 comment += Environment.NewLine + domainContextComment;
             }
 
@@ -388,7 +387,7 @@ namespace Luma.SimpleEntity.Generators
 
             // If it is declared in any visible entity type, the answer is 'no'
             // because it will be generated with that entity
-            if (this._domainServiceDescriptionAggregate.EntityTypes.Contains(declaringType))
+            if (this._entityDescriptionAggregate.EntityTypes.Contains(declaringType))
             {
                 return false;
             }
@@ -411,7 +410,7 @@ namespace Luma.SimpleEntity.Generators
 
                 // The first known type we encounter walking toward the base type
                 // will generate it, so we must not.
-                if (this._domainServiceDescriptionAggregate.EntityTypes.Contains(baseType))
+                if (this._entityDescriptionAggregate.EntityTypes.Contains(baseType))
                 {
                     break;
                 }
@@ -687,18 +686,18 @@ namespace Luma.SimpleEntity.Generators
                     pd.PropertyType;
 
             // Check if we're in conflict
-            if (!CodeGenUtilities.RegisterTypeName(associationType, this.Type.Namespace))
+            if (!CodeGenUtilities.RegisterTypeName(associationType, Type.Namespace))
             {
-                // Aggressively check for potential conflicts across other DomainService entity types.
+                // Aggressively check for potential conflicts across other entity types.
                 IEnumerable<Type> potentialConflicts =
-                    this.ClientProxyGenerator.DomainServiceDescriptions
+                    this.ClientProxyGenerator.EntityDescriptions
                         .SelectMany<EntityDescription, Type>(dsd => dsd.EntityTypes)
                             .Where(entity => entity.Namespace == associationType.Namespace).Distinct();
 
                 foreach (Type potentialConflict in potentialConflicts)
                 {
                     // Check if we plan to include any types from this potential conflict's namespace
-                    CodeGenUtilities.RegisterTypeName(potentialConflict, this.Type.Namespace);
+                    CodeGenUtilities.RegisterTypeName(potentialConflict, Type.Namespace);
                 }
             }
 
@@ -1026,9 +1025,9 @@ namespace Luma.SimpleEntity.Generators
         private IEnumerable<Type> GetVisibleBaseTypes(Type entityType)
         {
             List<Type> types = new List<Type>();
-            for (Type baseType = this._domainServiceDescriptionAggregate.GetEntityBaseType(entityType);
+            for (Type baseType = this._entityDescriptionAggregate.GetEntityBaseType(entityType);
                  baseType != null;
-                 baseType = this._domainServiceDescriptionAggregate.GetEntityBaseType(baseType))
+                 baseType = this._entityDescriptionAggregate.GetEntityBaseType(baseType))
             {
                 types.Add(baseType);
             }
@@ -1040,17 +1039,16 @@ namespace Luma.SimpleEntity.Generators
         /// If false, an error will be logged.
         /// </summary>
         /// <param name="entityType">The entity to compare against the least derived entity.</param>
-        /// <returns>Returns true if the shared entity's least derived entity is the same
-        /// across all <see cref="DomainService"/> that expose the entity.</returns>
+        /// <returns>Returns true if the shared entity's least derived entity is already exposed.</returns>
         private bool VerifySharedEntityRoot(Type entityType)
         {
             // Only perform computation on shared entities.
-            if (this._domainServiceDescriptionAggregate.IsShared)
+            if (_entityDescriptionAggregate.IsShared)
             {
                 Type firstRootType = null;
                 EntityDescription firstDescription = null;
 
-                foreach (var nextDescription in this._domainServiceDescriptionAggregate.EntityDescriptions)
+                foreach (var nextDescription in _entityDescriptionAggregate.EntityDescriptions)
                 {
                     Type nextRootType = nextDescription.GetRootEntityType(entityType);
 
@@ -1064,11 +1062,11 @@ namespace Luma.SimpleEntity.Generators
 
                     if (firstRootType != nextRootType)
                     {
-                        this.ClientProxyGenerator.LogError(string.Format(CultureInfo.CurrentCulture,
-                            Resource.EntityCodeGen_SharedEntityMustBeLeastDerived,
-                            firstRootType, "firstDescription.DomainServiceType",
-                            nextRootType, "nextDescription.DomainServiceType",
-                            entityType));
+                        //ClientProxyGenerator.LogError(string.Format(CultureInfo.CurrentCulture,
+                        //    Resource.EntityCodeGen_SharedEntityMustBeLeastDerived,
+                        //    firstRootType, "firstDescription.EntityType",
+                        //    nextRootType, "nextDescription.EntityType",
+                        //    entityType));
 
                         return false;
                     }
@@ -1082,15 +1080,15 @@ namespace Luma.SimpleEntity.Generators
         /// This class aggregates information from the all the <see cref="EntityDescription"/>
         /// that exposes the entity being generated.
         /// </summary>
-        private class DomainServiceDescriptionAggregate
+        private class EntityDescriptionAggregate
         {
             private HashSet<Type> _entityTypes;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="DomainServiceDescriptionAggregate"/> class.
+            /// Initializes a new instance of the <see cref="EntityDescriptionAggregate"/> class.
             /// </summary>
             /// <param name="entityDescriptions">The descriptions that exposes the entity type.</param>
-            internal DomainServiceDescriptionAggregate(IEnumerable<EntityDescription> entityDescriptions)
+            internal EntityDescriptionAggregate(IEnumerable<EntityDescription> entityDescriptions)
             {
                 this.EntityDescriptions = entityDescriptions;
                 this._entityTypes = new HashSet<Type>();
@@ -1165,8 +1163,7 @@ namespace Luma.SimpleEntity.Generators
             /// Returns the root type for the given entity type.
             /// </summary>
             /// <remarks>
-            /// The root type is the least derived entity type in the entity type
-            /// hierarchy that is exposed through a <see cref="DomainService"/>.
+            /// The root type is the least derived entity type in the entity type hierarchy.
             /// </remarks>
             /// <param name="entityType">The entity type whose root is required.</param>
             /// <returns>The type of the root or <c>null</c> if the given <paramref name="entityType"/>

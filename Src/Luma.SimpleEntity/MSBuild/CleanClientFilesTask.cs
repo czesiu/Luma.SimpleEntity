@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.IO;
 using Microsoft.Build.Framework;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity
 {
@@ -35,16 +34,16 @@ namespace Luma.SimpleEntity
         private void DeletePreviouslyWrittenFiles()
         {
             // Get the list of files we wrote in a prior build.
-            IEnumerable<string> files = this.FilesPreviouslyWritten();
+            IEnumerable<string> files = FilesPreviouslyWritten();
 
             // Now, scan the list and determine which ones went away
-            foreach (string fileName in files)
+            foreach (var fileName in files)
             {
                 if (File.Exists(fileName))
                 {
-                    this.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Deleting_Orphan, fileName));
-                    this.DeleteFileFromVS(fileName);
-                    this.DeleteFolderIfEmpty(Path.GetDirectoryName(fileName));
+                    LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Deleting_Orphan, fileName));
+                    DeleteFileFromVS(fileName);
+                    DeleteFolderIfEmpty(Path.GetDirectoryName(fileName));
                 }
             }
         }

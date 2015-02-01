@@ -13,13 +13,13 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
     /// used as a unique key and overrides <see cref="GetHashCode()"/> and 
     /// <see cref="Equals(object)"/> to convey value-based equality.
     /// </remarks>
-    internal class CodeMemberKey
+    public class CodeMemberKey
     {
-        internal CodeMemberKeyKind KeyKind { get; set; }
-        internal string TypeName { get; set; }
-        internal string MemberName { get; set; }
-        internal string MethodName { get; set; }
-        internal string[] ParameterTypeNames { get; set; }
+        public CodeMemberKeyKind KeyKind { get; set; }
+        public string TypeName { get; set; }
+        public string MemberName { get; set; }
+        public string MethodName { get; set; }
+        public string[] ParameterTypeNames { get; set; }
 
         /// <summary>
         /// Creates a new instance of the <see cref="CodeMemberKey"/> class
@@ -27,7 +27,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </summary>
         /// <param name="typeName">The fully qualified type name.</param>
         /// <returns>A new instance which describes that type.</returns>
-        internal static CodeMemberKey CreateTypeKey(string typeName)
+        public static CodeMemberKey CreateTypeKey(string typeName)
         {
             Debug.Assert(!string.IsNullOrEmpty(typeName), "typeName cannot be null");
             return new CodeMemberKey
@@ -43,7 +43,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </summary>
         /// <param name="type">The <see cref="Type"/> from which to construct the key.</param>
         /// <returns>A new instance which describes that type.</returns>
-        internal static CodeMemberKey CreateTypeKey(Type type)
+        public static CodeMemberKey CreateTypeKey(Type type)
         {
             Debug.Assert(type != null, "type cannot be null");
             return CodeMemberKey.CreateTypeKey(type.AssemblyQualifiedName);
@@ -56,7 +56,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// <param name="typeName">The fully qualified type name declaring the property.</param>
         /// <param name="propertyName">The name of the property.</param>
         /// <returns>A new instance which describes that property.</returns>
-        internal static CodeMemberKey CreatePropertyKey(string typeName, string propertyName)
+        public static CodeMemberKey CreatePropertyKey(string typeName, string propertyName)
         {
             Debug.Assert(!string.IsNullOrEmpty(typeName), "typeName cannot be null");
             Debug.Assert(!string.IsNullOrEmpty(propertyName), "propertyName cannot be null");
@@ -74,7 +74,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </summary>
         /// <param name="propertyInfo">The <see cref="PropertyInfo"/> of that property.</param>
         /// <returns>A new instance which describes that property.</returns>
-        internal static CodeMemberKey CreatePropertyKey(PropertyInfo propertyInfo)
+        public static CodeMemberKey CreatePropertyKey(PropertyInfo propertyInfo)
         {
             Debug.Assert(propertyInfo != null, "propertyInfo cannot be null");
             return CodeMemberKey.CreatePropertyKey(propertyInfo.DeclaringType.AssemblyQualifiedName, propertyInfo.Name);
@@ -88,7 +88,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// <param name="methodName">The name of the method.</param>
         /// <param name="parameterTypeNames">The set of fully qualified type names of the method parameters.</param>
         /// <returns>A new instance that describes that method.</returns>
-        internal static CodeMemberKey CreateMethodKey(string typeName, string methodName, string[] parameterTypeNames)
+        public static CodeMemberKey CreateMethodKey(string typeName, string methodName, string[] parameterTypeNames)
         {
             Debug.Assert(!string.IsNullOrEmpty(typeName), "typeName cannot be null");
             Debug.Assert(!string.IsNullOrEmpty(methodName), "methodName cannot be null");
@@ -107,7 +107,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </summary>
         /// <param name="methodBase">The <see cref="MethodBase"/> of the method or constructor.</param>
         /// <returns>A new instance that describes that method.</returns>
-        internal static CodeMemberKey CreateMethodKey(MethodBase methodBase)
+        public static CodeMemberKey CreateMethodKey(MethodBase methodBase)
         {
             Debug.Assert(methodBase != null, "methodBase cannot be null");
             string[] parameterTypes = methodBase.GetParameters().Select<ParameterInfo, string>(p => p.ParameterType.AssemblyQualifiedName).ToArray();
@@ -118,7 +118,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// Gets the <see cref="Type"/> for this key.  It may be null if
         /// the type does not exist in the current set of loaded assemblies.
         /// </summary>
-        internal Type Type
+        public Type Type
         {
             get
             {
@@ -134,7 +134,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </remarks>
         /// <value>The value may be <c>null</c> if the property does not actually exist.
         /// </value>
-        internal PropertyInfo PropertyInfo
+        public PropertyInfo PropertyInfo
         {
             get
             {
@@ -157,7 +157,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// </remarks>
         /// <value>The value may be <c>null</c> if the method does not actually exist.
         /// </value>
-        internal MethodBase MethodBase
+        public MethodBase MethodBase
         {
             get
             {
@@ -274,7 +274,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// Nested internal enum type used by <see cref="CodeMemberKey"/>
         /// to identify the key type
         /// </summary>
-        internal enum CodeMemberKeyKind
+        public enum CodeMemberKeyKind
         {
             /// <summary>
             /// The key refers to a type

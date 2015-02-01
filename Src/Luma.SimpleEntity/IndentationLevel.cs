@@ -1,4 +1,4 @@
-﻿namespace Luma.SimpleEntity.Tools
+﻿namespace Luma.SimpleEntity
 {
     /// <summary>
     /// This enum is designed to be used with type snippet generators.

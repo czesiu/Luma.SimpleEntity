@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Luma.SimpleEntity.Tools {
+namespace Luma.SimpleEntity {
     using System;
     
     
@@ -263,6 +263,33 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to CodeProcessor type &apos;{0}&apos; defined in DomainIdentifier attribute on type &apos;{1}&apos; threw an Exception: {2}.
+        /// </summary>
+        internal static string ClientCodeGen_CodeProcessor_ExceptionCaught {
+            get {
+                return ResourceManager.GetString("ClientCodeGen_CodeProcessor_ExceptionCaught", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to CodeProcessor type &apos;{0}&apos; defined in DomainIdentifier attribute on type &apos;{1}&apos; must have a constructor accepting one parameter of type &apos;{2}&apos;..
+        /// </summary>
+        internal static string ClientCodeGen_CodeProcessor_InvalidConstructorSignature {
+            get {
+                return ResourceManager.GetString("ClientCodeGen_CodeProcessor_InvalidConstructorSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; defined in DomainIdentifier attribute on type &apos;{1}&apos; is not a valid CodeProcessor implementation..
+        /// </summary>
+        internal static string ClientCodeGen_CodeProcessor_NotValidType {
+            get {
+                return ResourceManager.GetString("ClientCodeGen_CodeProcessor_NotValidType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Complex Type &apos;{0}&apos; already exists in another assembly. Complex Types cannot be defined in multiple assemblies..
         /// </summary>
         internal static string ClientCodeGen_ComplexTypesCannotBeShared_Reference {
@@ -295,69 +322,6 @@ namespace Luma.SimpleEntity.Tools {
         internal static string ClientCodeGen_Deleting_Orphan_Folder {
             get {
                 return ResourceManager.GetString("ClientCodeGen_Deleting_Orphan_Folder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DomainOperationEntry &apos;{0}&apos; in DomainService &apos;{1}&apos; will not be generated because it uses the Enum type &apos;{2}&apos;.  {3}.
-        /// </summary>
-        internal static string ClientCodeGen_Domain_Op_Enum_Error {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_Domain_Op_Enum_Error", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot generate DomainService &apos;{0}&apos;. Nested DomainService types are not supported..
-        /// </summary>
-        internal static string ClientCodeGen_DomainService_CannotBeNested {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_DomainService_CannotBeNested", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CodeProcessor type &apos;{0}&apos; defined in DomainIdentifier attribute on type &apos;{1}&apos; threw an Exception: {2}.
-        /// </summary>
-        internal static string ClientCodeGen_DomainService_CodeProcessor_ExceptionCaught {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_DomainService_CodeProcessor_ExceptionCaught", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to CodeProcessor type &apos;{0}&apos; defined in DomainIdentifier attribute on type &apos;{1}&apos; must have a constructor accepting one parameter of type &apos;{2}&apos;..
-        /// </summary>
-        internal static string ClientCodeGen_DomainService_CodeProcessor_InvalidConstructorSignature {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_DomainService_CodeProcessor_InvalidConstructorSignature", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type &apos;{0}&apos; defined in DomainIdentifier attribute on type &apos;{1}&apos; is not a valid CodeProcessor implementation..
-        /// </summary>
-        internal static string ClientCodeGen_DomainService_CodeProcessor_NotValidType {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_DomainService_CodeProcessor_NotValidType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DomainService &apos;{0}&apos; derives from DomainService &apos;{1}&apos;. Only the leaf DomainService in the inheritance hierarchy may have the EnableClientAccessAttribute..
-        /// </summary>
-        internal static string ClientCodeGen_DomainService_Inheritance_Not_Allowed {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_DomainService_Inheritance_Not_Allowed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to DomainService &apos;{0}&apos; does not contain any public domain operations..
-        /// </summary>
-        internal static string ClientCodeGen_EmptyDomainService {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_EmptyDomainService", resourceCulture);
             }
         }
         
@@ -398,15 +362,6 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Code cannot be generated for the DomainService &apos;{0}&apos; because it isn&apos;t marked with EnableClientAccessAttribute..
-        /// </summary>
-        internal static string ClientCodeGen_InvalidDomainServiceType {
-            get {
-                return ResourceManager.GetString("ClientCodeGen_InvalidDomainServiceType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; must appear inside a namespace..
         /// </summary>
         internal static string ClientCodeGen_Namespace_Required {
@@ -416,7 +371,7 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to generate DomainService &apos;{0}&apos; due to a naming conflict with an existing member.  DomainOperationEntry &apos;{1}&apos; conflicts with an auto-generated property with the same name.  Consider renaming..
+        ///   Looks up a localized string similar to Unable to generate &apos;{0}&apos; due to a naming conflict with an existing member. &apos;{1}&apos; conflicts with an auto-generated property with the same name.  Consider renaming..
         /// </summary>
         internal static string ClientCodeGen_NamingCollision_MemberAlreadyExists {
             get {
@@ -506,7 +461,7 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The requested code generator &apos;{0}&apos; cannot be used because it does not implement &apos;IDomainServiceClientCodeGenerator&apos;..
+        ///   Looks up a localized string similar to The requested code generator &apos;{0}&apos; cannot be used because it does not implement &apos;IClientCodeGenerator&apos;..
         /// </summary>
         internal static string Code_Generator_Incorrect_Type {
             get {
@@ -529,9 +484,9 @@ namespace Luma.SimpleEntity.Tools {
         ///If a generator with this name exists elsewhere, add a reference to its assembly to the
         ///&apos;{2}&apos; project.
         ///Otherwise, manually edit the &apos;{3}&apos; project
-        ///to add a &lt;OpenRiaClientCodeGeneratorName&gt; property to name a valid generator.
+        ///to add a &lt;CodeGeneratorName&gt; property to name a valid generator.
         ///To specify the default generator add this property:
-        ///  &lt;OpenRiaClientCodeGeneratorName&gt;{4}&lt;/OpenRiaClientCodeGeneratorName&gt;
+        ///  &lt;CodeGeneratorName&gt;{4}&lt;/CodeGeneratorName&gt;
         ///.
         /// </summary>
         internal static string Code_Generator_Not_Found {
@@ -586,15 +541,6 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The DomainContext corresponding to the &apos;{0}&apos; DomainService..
-        /// </summary>
-        internal static string CodeGen_DomainContext_Class_Summary_Comment {
-            get {
-                return ResourceManager.GetString("CodeGen_DomainContext_Class_Summary_Comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The &lt;see cref=&quot;{0}&quot;/&gt; entity instance..
         /// </summary>
         internal static string CodeGen_DomainContext_Custom_Method_Entity_Parameter_Comment {
@@ -636,15 +582,6 @@ namespace Luma.SimpleEntity.Tools {
         internal static string CodeGen_DomainContext_Invoke_Method_Parameter_Comment {
             get {
                 return ResourceManager.GetString("CodeGen_DomainContext_Invoke_Method_Parameter_Comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Asynchronously invokes the &apos;{0}&apos; method of the DomainService..
-        /// </summary>
-        internal static string CodeGen_DomainContext_Invoke_Method_Summary_Comment {
-            get {
-                return ResourceManager.GetString("CodeGen_DomainContext_Invoke_Method_Summary_Comment", resourceCulture);
             }
         }
         
@@ -754,15 +691,6 @@ namespace Luma.SimpleEntity.Tools {
         internal static string CodeGen_DomainContext_ServiceContract_End_SubmitMethod_Returns_Comment {
             get {
                 return ResourceManager.GetString("CodeGen_DomainContext_ServiceContract_End_SubmitMethod_Returns_Comment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Service contract for the &apos;{0}&apos; DomainService..
-        /// </summary>
-        internal static string CodeGen_DomainContext_ServiceContract_Summary_Comment {
-            get {
-                return ResourceManager.GetString("CodeGen_DomainContext_ServiceContract_Summary_Comment", resourceCulture);
             }
         }
         
@@ -884,11 +812,11 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generating proxy classes for the DomainService &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Generating proxy classes.
         /// </summary>
-        internal static string CodeGen_Generating_DomainService {
+        internal static string CodeGen_Generating {
             get {
-                return ResourceManager.GetString("CodeGen_Generating_DomainService", resourceCulture);
+                return ResourceManager.GetString("CodeGen_Generating", resourceCulture);
             }
         }
         
@@ -1042,7 +970,7 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The custom method named &apos;{0}&apos; associated with entity type &apos;{1}&apos; is defined more than once in the &apos;{2}&apos; and &apos;{3}&apos; DomainService classes..
+        ///   Looks up a localized string similar to The custom method named &apos;{0}&apos; associated with entity type &apos;{1}&apos; is defined more than once in the &apos;{2}&apos; and &apos;{3}&apos; classes..
         /// </summary>
         internal static string EntityCodeGen_DuplicateCustomMethodName {
             get {
@@ -1110,15 +1038,6 @@ namespace Luma.SimpleEntity.Tools {
         internal static string EntityCodeGen_RoundtripOriginalOnBaseType {
             get {
                 return ResourceManager.GetString("EntityCodeGen_RoundtripOriginalOnBaseType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Sharing entity types within an inheritance hierarchy is not allowed unless all DomainServices expose the same least derived entity. Entity &apos;{0}&apos; is the least derived entity on DomainService &apos;{1}&apos;,  Entity &apos;{2}&apos; is the least derived Entity on DomainService &apos;{3}&apos;, and Entity &apos;{4}&apos; is exposed from both DomainServices..
-        /// </summary>
-        internal static string EntityCodeGen_SharedEntityMustBeLeastDerived {
-            get {
-                return ResourceManager.GetString("EntityCodeGen_SharedEntityMustBeLeastDerived", resourceCulture);
             }
         }
         
@@ -1261,7 +1180,7 @@ namespace Luma.SimpleEntity.Tools {
         
         /// <summary>
         ///   Looks up a localized string similar to Multiple custom code generators are available for {0}:
-        ///{1}Please set the OpenRiaClientCodeGeneratorName property in the client project to select which of these you wish to use.
+        ///{1}Please set the CodeGeneratorName property in the client project to select which of these you wish to use.
         ///.
         /// </summary>
         internal static string Multiple_Custom_Code_Generators {
@@ -1275,9 +1194,9 @@ namespace Luma.SimpleEntity.Tools {
         ///{1}The default generator will be used because none was specified.
         ///To specify one manually edit the &apos;{2}&apos; project
         ///and add a property like this:
-        ///  &lt;OpenRiaClientCodeGeneratorName&gt;{3}&lt;/OpenRiaClientCodeGeneratorName&gt;
+        ///  &lt;CodeGeneratorName&gt;{3}&lt;/CodeGeneratorName&gt;
         ///To specify the default generator add this property:
-        ///  &lt;OpenRiaClientCodeGeneratorName&gt;{4}&lt;/OpenRiaClientCodeGeneratorName&gt;.
+        ///  &lt;CodeGeneratorName&gt;{4}&lt;/CodeGeneratorName&gt;.
         /// </summary>
         internal static string Multiple_Custom_Code_Generators_Using_Default {
             get {
@@ -1291,7 +1210,7 @@ namespace Luma.SimpleEntity.Tools {
         ///modify them to have unique names,
         ///or manually edit the &apos;{4}&apos; project
         ///to add a property that fully qualifies one, like this:
-        ///    &lt;OpenRiaClientCodeGeneratorName&gt;{5}&lt;/OpenRiaClientCodeGeneratorName&gt;.
+        ///    &lt;CodeGeneratorName&gt;{5}&lt;/CodeGeneratorName&gt;.
         /// </summary>
         internal static string Multiple_Named_Code_Generators {
             get {
@@ -1363,27 +1282,9 @@ namespace Luma.SimpleEntity.Tools {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A Open Ria Services Link exists between project &apos;{0}&apos; and project &apos;{1}&apos;..
-        /// </summary>
-        internal static string RIA_Link_Present {
-            get {
-                return ResourceManager.GetString("RIA_Link_Present", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Shared files will not be copied from &apos;{0}&apos; due to an existing Open Ria Services Link from &apos;{1}&apos;..
-        /// </summary>
-        internal static string RIA_Link_Prevents_Copy {
-            get {
-                return ResourceManager.GetString("RIA_Link_Prevents_Copy", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Silverlight project &apos;{0}&apos; has a Open Ria Services Link to the project &apos;{1}&apos; which does not exist.
+        ///   Looks up a localized string similar to The project &apos;{0}&apos; has a Simple Entity Link to the project &apos;{1}&apos; which does not exist.
         ///Did you rename or move that project?
-        ///Please modify the Project Properties of &apos;{0}&apos; and set the Open Ria Services Link to point to a valid project..
+        ///Please modify the Project Properties of &apos;{0}&apos; and set the Simple Entity Link to point to a valid project..
         /// </summary>
         internal static string Server_Project_File_Does_Not_Exist {
             get {
@@ -1406,6 +1307,24 @@ namespace Luma.SimpleEntity.Tools {
         internal static string SharedCodeServiceParameters_Parameter_Null {
             get {
                 return ResourceManager.GetString("SharedCodeServiceParameters_Parameter_Null", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Simple Entity Link exists between project &apos;{0}&apos; and project &apos;{1}&apos;..
+        /// </summary>
+        internal static string SimpleEntity_Link_Present {
+            get {
+                return ResourceManager.GetString("SimpleEntity_Link_Present", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shared files will not be copied from &apos;{0}&apos; due to an existing Simple Entity Link from &apos;{1}&apos;..
+        /// </summary>
+        internal static string SimpleEntity_Link_Prevents_Copy {
+            get {
+                return ResourceManager.GetString("SimpleEntity_Link_Prevents_Copy", resourceCulture);
             }
         }
         

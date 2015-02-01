@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Globalization;
 using Luma.SimpleEntity.Helpers;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity.MetadataPipeline
 {

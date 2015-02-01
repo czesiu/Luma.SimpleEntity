@@ -1,8 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <FeaturePackageRoot>$(MSBuildProjectDirectory)\..\..</FeaturePackageRoot>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'MyGet|AnyCPU'">
     <OutputPath>bin\MyGet\</OutputPath>
     <DefineConstants>TRACE;SERVERFX</DefineConstants>
@@ -58,7 +55,6 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  <Import Project="$(FeaturePackageRoot)\FeaturePackage.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -147,27 +143,6 @@
     </Compile>
     <Compile Include="..\..\OpenRiaServices.DomainServices.Tools\Framework\MetadataPipeline\ValidationCustomAttributeBuilder.cs">
       <Link>CSharpGenerators\AttributeGenerationHelpers\ValidationCustomAttributeBuilder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Tools\Framework\Naming.cs">
-      <Link>Utilities\Naming.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Tools\Framework\SharedTypes\VirtualType.cs">
-      <Link>Utilities\VirtualType.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Client\Framework\Silverlight\Data\BinaryTypeUtility.cs">
-      <Link>Utilities\BinaryTypeUtility.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Client\Framework\Silverlight\Data\TypeUtility.cs">
-      <Link>Utilities\TypeUtility.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Client\Framework\Silverlight\ExceptionHandlingUtility.cs">
-      <Link>Utilities\ExceptionHandlingUtility.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Hosting\Framework\Services\SerializationUtility.cs">
-      <Link>Utilities\SerializationUtility.cs</Link>
-    </Compile>
-    <Compile Include="..\..\OpenRiaServices.DomainServices.Server\Framework\TypeDescriptorExtensions.cs">
-      <Link>Utilities\TypeDescriptorExtensions.cs</Link>
     </Compile>
     <Compile Include="CodeGeneratorTextTemplate.cs">
       <AutoGen>True</AutoGen>
@@ -260,6 +235,7 @@
       <DependentUpon>TextTemplateResource.resx</DependentUpon>
     </Compile>
     <Compile Include="Utilities\CodeGenUtilities.cs" />
+    <Compile Include="Utilities\VirtualType.cs" />
     <Compile Include="WebContextGenerator.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -355,7 +331,15 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\OpenRiaServices.DomainServices.Tools\Framework\OpenRiaServices.DomainServices.Tools.csproj">
+    <ProjectReference Include="..\Luma.SimpleEntity.Helpers\Luma.SimpleEntity.Helpers.csproj">
+      <Project>{af46130c-2f30-4d86-93ad-d8b7c0c891f2}</Project>
+      <Name>Luma.SimpleEntity.Helpers</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Luma.SimpleEntity.Server\Luma.SimpleEntity.Server.csproj">
+      <Project>{3662E176-BADC-4B9F-BE94-E97C62AFE456}</Project>
+      <Name>Luma.SimpleEntity.Server</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Luma.SimpleEntity\Luma.SimpleEntity.csproj">
       <Project>{B33BF27F-7DF7-46FF-A1DA-F12A873E124F}</Project>
       <Name>OpenRiaServices.DomainServices.Tools</Name>
     </ProjectReference>

@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity.Cache
 {
@@ -17,12 +16,11 @@ namespace Luma.SimpleEntity.Cache
         // The name of the MSBuild property for RIA Links
         private const string LinkedServerProjectPropertyName = "LinkedSimpleEntityServerProject";
 
-        private string _rootProjectPath;
-        private string _historyFilePath;
-        private ILogger _logger;
-        private ProjectFileReader _projectFileReader;
+        private readonly string _rootProjectPath;
+        private readonly string _historyFilePath;
+        private readonly ILogger _logger;
+        private readonly ProjectFileReader _projectFileReader;
         private Dictionary<string, string> _linkedServerProjectsByProject;
-        private bool _isFileCacheCurrent;
 
         /// <summary>
         /// Creates a new instance
@@ -53,27 +51,17 @@ namespace Luma.SimpleEntity.Cache
                 throw new ArgumentNullException("projectFileReader");
             }
 
-            this._rootProjectPath = rootProjectPath;
-            this._historyFilePath = historyFilePath;
-            this._logger = logger;
-            this._projectFileReader = projectFileReader;
+            _rootProjectPath = rootProjectPath;
+            _historyFilePath = historyFilePath;
+            _logger = logger;
+            _projectFileReader = projectFileReader;
         }
 
         /// <summary>
         /// Gets the value indicating whether the file on disk is
         /// current with respect to the in-memory contents.
         /// </summary>
-        internal bool IsFileCacheCurrent
-        {
-            get
-            {
-                return this._isFileCacheCurrent;
-            }
-            private set
-            {
-                this._isFileCacheCurrent = value;
-            }
-        }
+        internal bool IsFileCacheCurrent { get; private set; }
 
         /// <summary>
         /// Gets the dictionary associating client project paths with their server project identified
@@ -91,15 +79,15 @@ namespace Luma.SimpleEntity.Cache
         {
             get
             {
-                if (this._linkedServerProjectsByProject == null)
+                if (_linkedServerProjectsByProject == null)
                 {
-                    this._linkedServerProjectsByProject = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    if (!this.LoadCacheFromFile())
+                    _linkedServerProjectsByProject = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    if (!LoadCacheFromFile())
                     {
-                        this.LoadCacheFromProject();
+                        LoadCacheFromProject();
                     }
                 }
-                return this._linkedServerProjectsByProject;
+                return _linkedServerProjectsByProject;
             }
         }
 
@@ -122,8 +110,8 @@ namespace Luma.SimpleEntity.Cache
                 {
                     throw new ArgumentNullException("projectPath");
                 }
-                string result = null;
-                this.LinkedServerProjectsByProject.TryGetValue(projectPath, out result);
+                string result;
+                LinkedServerProjectsByProject.TryGetValue(projectPath, out result);
                 return result;
             }
             set
@@ -132,8 +120,8 @@ namespace Luma.SimpleEntity.Cache
                 {
                     throw new ArgumentNullException("projectPath");
                 }
-                this.LinkedServerProjectsByProject[projectPath] = value;
-                this.IsFileCacheCurrent = false;
+                LinkedServerProjectsByProject[projectPath] = value;
+                IsFileCacheCurrent = false;
             }
         }
 
@@ -145,7 +133,7 @@ namespace Luma.SimpleEntity.Cache
         {
             get
             {
-                return this.LinkedServerProjectsByProject.Keys;
+                return LinkedServerProjectsByProject.Keys;
             }
         }
 
@@ -160,7 +148,7 @@ namespace Luma.SimpleEntity.Cache
             {
                 // Filter out those with an empty or null RIA Link.
                 // Also apply Distinct because multiple client projects might point to the same RIA Link server project
-                return this.LinkedServerProjectsByProject.Values.Where(s => !string.IsNullOrEmpty(s)).Distinct();
+                return LinkedServerProjectsByProject.Values.Where(s => !string.IsNullOrEmpty(s)).Distinct();
             }
         }
 
@@ -176,7 +164,7 @@ namespace Luma.SimpleEntity.Cache
         /// <returns>The set of all client project paths that have a RIA link to <paramref name="linkedServerProject"/></returns>
         internal IEnumerable<string> GetLinkedServerProjectSources(string linkedServerProject)
         {
-            return this.ProjectReferences.Where(s => String.Equals(linkedServerProject, this[s], StringComparison.OrdinalIgnoreCase));
+            return ProjectReferences.Where(s => String.Equals(linkedServerProject, this[s], StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -192,23 +180,23 @@ namespace Luma.SimpleEntity.Cache
         internal bool SaveCacheToFile()
         {
             // If nothing to save, tell the caller and let them decide what to do
-            if (string.IsNullOrEmpty(this._historyFilePath) || this._linkedServerProjectsByProject == null)
+            if (string.IsNullOrEmpty(_historyFilePath) || _linkedServerProjectsByProject == null)
             {
                 return false;
             }
 
             // Format is:
             //  One line per project: path, lastWriteTime, linked server project
-            StringBuilder sb = new StringBuilder();
-            foreach (string projectPath in this.LinkedServerProjectsByProject.Keys)
+            var sb = new StringBuilder();
+            foreach (var projectPath in LinkedServerProjectsByProject.Keys)
             {
-                StringBuilder sb1 = new StringBuilder();
+                var sb1 = new StringBuilder();
                 sb1.Append(projectPath);
                 sb1.Append(',');
                 sb1.Append(File.GetLastWriteTime(projectPath).Ticks.ToString(CultureInfo.InvariantCulture));
                 sb1.Append(',');
 
-                string linkedServerProject = this[projectPath];
+                var linkedServerProject = this[projectPath];
                 if (!string.IsNullOrEmpty(linkedServerProject))
                 {
                     sb1.Append(linkedServerProject);
@@ -232,11 +220,12 @@ namespace Luma.SimpleEntity.Cache
             }
             if (exception != null)
             {
-                this._logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Failed_To_Write_File, this._historyFilePath, exception.Message));
+                _logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Failed_To_Write_File, this._historyFilePath, exception.Message));
                 return false;
             }
 
-            this.IsFileCacheCurrent = true;
+            IsFileCacheCurrent = true;
+
             return true;
         }
 
@@ -255,18 +244,18 @@ namespace Luma.SimpleEntity.Cache
         /// </returns>
         internal bool LoadCacheFromFile()
         {
-            this.IsFileCacheCurrent = false;
+            IsFileCacheCurrent = false;
 
             // If the history file does not exist (such as after a Clean), we cannot load
-            if (!File.Exists(this._historyFilePath))
+            if (!File.Exists(_historyFilePath))
             {
                 return false;
             }
 
             // If the root project itself has been touched since the
             // time we wrote the file, we can't trust anything in our cache
-            DateTime projectWriteTime = File.GetLastWriteTime(this._rootProjectPath);
-            DateTime breadCrumbWriteTime = File.GetLastWriteTime(this._historyFilePath);
+            DateTime projectWriteTime = File.GetLastWriteTime(_rootProjectPath);
+            DateTime breadCrumbWriteTime = File.GetLastWriteTime(_historyFilePath);
             if (projectWriteTime.CompareTo(breadCrumbWriteTime) > 0)
             {
                 return false;
@@ -275,12 +264,12 @@ namespace Luma.SimpleEntity.Cache
             // Read the breadcrumb file.
             // Format is:
             //  One line per project: client project path, lastWriteTime of it, linked server project name
-            string fileContents = File.ReadAllText(this._historyFilePath);
-            string[] projectEntries = fileContents.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            var fileContents = File.ReadAllText(_historyFilePath);
+            var projectEntries = fileContents.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string projectEntry in projectEntries)
             {
                 string linkedServerProject = null;
-                string[] projectItems = projectEntry.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] projectItems = projectEntry.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
                 // Fewer than 2 is formatting problem -- maybe the file is corrupt.  Just discard cache and rebuild.
                 if (projectItems.Length < 2)
@@ -302,7 +291,7 @@ namespace Luma.SimpleEntity.Cache
                 projectWriteTime = File.GetLastWriteTime(projectPath);
                 if (projectWriteTime.CompareTo(breadCrumbWriteTime) > 0)
                 {
-                    linkedServerProject = this.LoadRiaLinkFromProject(projectPath);
+                    linkedServerProject = LoadLinkFromProject(projectPath);
                 }
                 else
                 {
@@ -317,7 +306,8 @@ namespace Luma.SimpleEntity.Cache
                 this[projectPath] = linkedServerProject;
             }
 
-            this.IsFileCacheCurrent = true;
+            IsFileCacheCurrent = true;
+
             return true;
         }
 
@@ -326,21 +316,21 @@ namespace Luma.SimpleEntity.Cache
         /// project references, and evaluating the &lt;LinkedServerProject&gt; property
         /// (i.e. the RIA Link) for each.
         /// </summary>
-        internal void LoadCacheFromProject()
+        private void LoadCacheFromProject()
         {
             // Empty cache and show that file is out-of-date.
             // This forces the cache write on shutdown to guarantee we use the
             // file cache copy even if there are no references found below.
-            this._linkedServerProjectsByProject.Clear();
-            this.IsFileCacheCurrent = false;
+            _linkedServerProjectsByProject.Clear();
+            IsFileCacheCurrent = false;
 
             // Ask for all the project-to-project references
-            IEnumerable<string> projectPaths = this._projectFileReader.LoadProjectReferences(this._rootProjectPath);
+            var projectPaths = _projectFileReader.LoadProjectReferences(_rootProjectPath);
 
             // Add an entry in our cache for every project reference, whether it has a RIA Link or not
             foreach (string projectPath in projectPaths)
             {
-                string linkedServerProject = this.LoadRiaLinkFromProject(projectPath);
+                var linkedServerProject = LoadLinkFromProject(projectPath);
                 this[projectPath] = linkedServerProject;
             }
         }
@@ -351,18 +341,19 @@ namespace Luma.SimpleEntity.Cache
         /// </summary>
         /// <param name="projectPath">The full path to the project possibly containing this property.</param>
         /// <returns>The full path of the RIA link.  It may be null or empty.</returns>
-        internal string LoadRiaLinkFromProject(string projectPath)
+        private string LoadLinkFromProject(string projectPath)
         {
-            string linkedServerProject = this._projectFileReader.GetPropertyValue(projectPath, LinkedServerProjectCache.LinkedServerProjectPropertyName);
+            var linkedServerProject = _projectFileReader.GetPropertyValue(projectPath, LinkedServerProjectPropertyName);
 
             // RIA Links are usually relative -- convert to full
             if (!string.IsNullOrEmpty(linkedServerProject))
             {
                 linkedServerProject = ProjectFileReader.ConvertToFullPath(linkedServerProject, projectPath);
 
-                // Emit a message to help user see we found a RIA Link
-                this._logger.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.RIA_Link_Present, projectPath, linkedServerProject));
+                // Emit a message to help user see we found a SimpleEntity Link
+                _logger.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.SimpleEntity_Link_Present, projectPath, linkedServerProject));
             }
+
             return linkedServerProject;
         }
     }

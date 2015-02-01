@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Luma.SimpleEntity.Helpers;
 using Luma.SimpleEntity.MetadataPipeline;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity.Generators
 {
@@ -28,7 +27,7 @@ namespace Luma.SimpleEntity.Generators
         /// </summary>
         /// <param name="proxyGenerator">The client proxy generator against which this will generate code.  Cannot be <c>null</c>.</param>
         /// <param name="type">The type to generate.  Cannot be null.</param>
-        /// <param name="typeMapping">A dictionary of <see cref="DomainService"/> and related types that maps to their corresponding client-side <see cref="CodeTypeReference"/> representations.</param>
+        /// <param name="typeMapping">A dictionary of <see cref="Entity"/> and related types that maps to their corresponding client-side <see cref="CodeTypeReference"/> representations.</param>
         protected DataContractProxyGenerator(CodeDomClientCodeGenerator proxyGenerator, Type type, IDictionary<Type, CodeTypeDeclaration> typeMapping)
             : base(proxyGenerator)
         {
@@ -80,7 +79,7 @@ namespace Luma.SimpleEntity.Generators
             // ----------------------------------------------------------------
             // namespace
             // ----------------------------------------------------------------
-            var ns = this.ClientProxyGenerator.GetOrGenNamespace(this.Type);
+            var ns = ClientProxyGenerator.GetOrGenNamespace(Type);
             
             // Missing namespace bails out of code-gen -- error has been logged
             if (ns == null)
@@ -91,36 +90,36 @@ namespace Luma.SimpleEntity.Generators
             // ----------------------------------------------------------------
             // public partial class {Type} : (Base)
             // ----------------------------------------------------------------
-            this.ProxyClass = CodeGenUtilities.CreateTypeDeclaration(this.Type);
-            this.ProxyClass.IsPartial = true;    // makes this a partial type
-            this.ProxyClass.TypeAttributes = TypeAttributes.Public;
+            ProxyClass = CodeGenUtilities.CreateTypeDeclaration(Type);
+            ProxyClass.IsPartial = true;    // makes this a partial type
+            ProxyClass.TypeAttributes = TypeAttributes.Public;
 
             // Abstract classes must be preserved as abstract to avoid explicit instantiation on client
-            bool isAbstract = (this.Type.IsAbstract);            
+            bool isAbstract = (Type.IsAbstract);            
             if (isAbstract)
             {
-                this.ProxyClass.TypeAttributes |= TypeAttributes.Abstract;
+                ProxyClass.TypeAttributes |= TypeAttributes.Abstract;
             }
 
             // Determine all types derived from this one.
             // Note this list does not assume the current type is the visible root.  That is a separate test.
-            IEnumerable<Type> derivedTypes = this.GetDerivedTypes();
+            IEnumerable<Type> derivedTypes = GetDerivedTypes();
 
             // If this type doesn't have any derivatives, seal it.  Cannot seal abstracts.
             if (!isAbstract && !derivedTypes.Any())
             {
-                this.ProxyClass.TypeAttributes |= TypeAttributes.Sealed;
+                ProxyClass.TypeAttributes |= TypeAttributes.Sealed;
             }
 
             // Add all base types including interfaces
-            this.AddBaseTypes(ns);
-            ns.Types.Add(this.ProxyClass);
+            AddBaseTypes(ns);
+            ns.Types.Add(ProxyClass);
 
-            AttributeCollection typeAttributes = this.Type.Attributes();
+            AttributeCollection typeAttributes = Type.Attributes();
 
             // Add <summary> xml comment to class
-            string comment = this.GetSummaryComment();
-            this.ProxyClass.Comments.AddRange(CodeGenUtilities.GenerateSummaryCodeComment(comment, this.ClientProxyGenerator.IsCSharp));
+            string comment = GetSummaryComment();
+            ProxyClass.Comments.AddRange(CodeGenUtilities.GenerateSummaryCodeComment(comment, ClientProxyGenerator.IsCSharp));
 
             // ----------------------------------------------------------------
             // Add default ctr
@@ -131,19 +130,19 @@ namespace Luma.SimpleEntity.Generators
             constructor.Attributes = isAbstract ? MemberAttributes.Family : MemberAttributes.Public;
 
             // add default ctor doc comments
-            comment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Default_Constructor_Summary_Comments, this.Type.Name); 
-            constructor.Comments.AddRange(CodeGenUtilities.GenerateSummaryCodeComment(comment, this.ClientProxyGenerator.IsCSharp));
+            comment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Default_Constructor_Summary_Comments, Type.Name); 
+            constructor.Comments.AddRange(CodeGenUtilities.GenerateSummaryCodeComment(comment, ClientProxyGenerator.IsCSharp));
 
             // add call to default OnCreated method
-            constructor.Statements.Add(this.NotificationMethodGen.OnCreatedMethodInvokeExpression);
-            this.ProxyClass.Members.Add(constructor);
+            constructor.Statements.Add(NotificationMethodGen.OnCreatedMethodInvokeExpression);
+            ProxyClass.Members.Add(constructor);
 
             // ----------------------------------------------------------------
             // [KnownType(...), ...]
             // ----------------------------------------------------------------
 
             // We need to generate a [KnownType] for all derived entities on the visible root.
-            if (!this.IsDerivedType)
+            if (!IsDerivedType)
             {
                 // Generate a [KnownType] for every derived type.
                 // We specifically exclude [KnownTypes] from the set of attributes we ask
@@ -153,45 +152,45 @@ namespace Luma.SimpleEntity.Generators
                 // Note, we sort in alphabetic order to give predictability in baselines and
                 // client readability.  For cosmetic reasons, we sort by short or long name
                 // depending on what our utility helpers will actually generated
-                foreach (Type derivedType in derivedTypes.OrderBy(t => this.ClientProxyGenerator.ClientProxyCodeGenerationOptions.UseFullTypeNames ? t.FullName : t.Name))
+                foreach (Type derivedType in derivedTypes.OrderBy(t => ClientProxyGenerator.ClientProxyCodeGenerationOptions.UseFullTypeNames ? t.FullName : t.Name))
                 {
-                    CodeAttributeDeclaration knownTypeAttrib = CodeGenUtilities.CreateAttributeDeclaration(typeof(System.Runtime.Serialization.KnownTypeAttribute), this.ClientProxyGenerator, this.ProxyClass);
-                    knownTypeAttrib.Arguments.Add(new CodeAttributeArgument(new CodeTypeOfExpression(CodeGenUtilities.GetTypeReference(derivedType, this.ClientProxyGenerator, this.ProxyClass))));
-                    this.ProxyClass.CustomAttributes.Add(knownTypeAttrib);
+                    CodeAttributeDeclaration knownTypeAttrib = CodeGenUtilities.CreateAttributeDeclaration(typeof(System.Runtime.Serialization.KnownTypeAttribute), ClientProxyGenerator, ProxyClass);
+                    knownTypeAttrib.Arguments.Add(new CodeAttributeArgument(new CodeTypeOfExpression(CodeGenUtilities.GetTypeReference(derivedType, ClientProxyGenerator, ProxyClass))));
+                    ProxyClass.CustomAttributes.Add(knownTypeAttrib);
                 }
             }
 
-            this.ValidateTypeAttributes(typeAttributes);
+            ValidateTypeAttributes(typeAttributes);
 
             // ----------------------------------------------------------------
             // [DataContract(Namespace=X, Name=Y)]
             // ----------------------------------------------------------------
-            CodeAttributeDeclaration dataContractAttrib = CodeGenUtilities.CreateDataContractAttributeDeclaration(this.Type, this.ClientProxyGenerator, this.ProxyClass);
-            this.ProxyClass.CustomAttributes.Add(dataContractAttrib);
+            CodeAttributeDeclaration dataContractAttrib = CodeGenUtilities.CreateDataContractAttributeDeclaration(Type, ClientProxyGenerator, ProxyClass);
+            ProxyClass.CustomAttributes.Add(dataContractAttrib);
 
             // ----------------------------------------------------------------
             // Propagate all type-level Attributes across (except DataContractAttribute since that is handled above)
             // -----------------------------------------------------------------
             CustomAttributeGenerator.GenerateCustomAttributes(
-                this.ClientProxyGenerator,
-                this.ProxyClass,
-                ex => string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_ThrewException_CodeType, ex.Message, this.ProxyClass.Name, ex.InnerException.Message),
-                this.FilterTypeAttributes(typeAttributes),
-                this.ProxyClass.CustomAttributes,
-                this.ProxyClass.Comments);
+                ClientProxyGenerator,
+                ProxyClass,
+                ex => string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_ThrewException_CodeType, ex.Message, ProxyClass.Name, ex.InnerException.Message),
+                FilterTypeAttributes(typeAttributes),
+                ProxyClass.CustomAttributes,
+                ProxyClass.Comments);
 
             // ----------------------------------------------------------------
             // gen proxy getter/setter for each property
             // ----------------------------------------------------------------
-            this.GenerateProperties();
+            GenerateProperties();
 
             // ----------------------------------------------------------------
             // gen additional methods/events
             // ----------------------------------------------------------------
-            this.GenerateAdditionalMembers();
+            GenerateAdditionalMembers();
 
             // Register created CodeTypeDeclaration with mapping
-            this._typeMapping[this.Type] = this.ProxyClass;
+            _typeMapping[Type] = ProxyClass;
         }
 
         /// <summary>
@@ -224,9 +223,9 @@ namespace Luma.SimpleEntity.Generators
                 Type enumType = TypeUtility.GetNonNullableType(type);
                 if (enumType.IsEnum)
                 {
-                    if (!this.ClientProxyGenerator.CanExposeEnumType(enumType, out errorMessage))
+                    if (!ClientProxyGenerator.CanExposeEnumType(enumType, out errorMessage))
                     {
-                        this.ClientProxyGenerator.LogWarning(String.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Property_Enum_Error, this.Type, propertyDescriptor.Name, enumType.FullName, errorMessage));
+                        ClientProxyGenerator.LogWarning(String.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Property_Enum_Error, Type, propertyDescriptor.Name, enumType.FullName, errorMessage));
                         return false;
                     }
                     else
@@ -260,7 +259,7 @@ namespace Luma.SimpleEntity.Generators
         protected virtual void GenerateAdditionalMembers()
         {
             // Add OnMethodChanging/Changed partial methods.
-            this.ProxyClass.Members.AddRange(this.NotificationMethodGen.PartialMethodsSnippetBlock);
+            ProxyClass.Members.AddRange(NotificationMethodGen.PartialMethodsSnippetBlock);
         }
 
         /// <summary>
@@ -316,7 +315,7 @@ namespace Luma.SimpleEntity.Generators
         {
             // If this property is visible to the client already because of partial types,
             // do not generate it again, or we will get a compile error
-            CodeMemberShareKind shareKind = this.ClientProxyGenerator.GetPropertyShareKind(this.Type, pd.Name);
+            CodeMemberShareKind shareKind = ClientProxyGenerator.GetPropertyShareKind(Type, pd.Name);
             return ((shareKind & CodeMemberShareKind.Shared) != 0);
         }
 
@@ -340,14 +339,14 @@ namespace Luma.SimpleEntity.Generators
         {
             AttributeCollection propertyAttributes = pd.ExplicitAttributes();
 
-            if (this.IsExcluded(pd, propertyAttributes))
+            if (IsExcluded(pd, propertyAttributes))
             {
                 // Ignore the [Include] because that's what we do during serialization as well. (We don't want to 
                 // check for [Exclude] + [Include] everywhere in our code base.)
                 return false;
             }
 
-            if (this.IsPropertyShared(pd))
+            if (IsPropertyShared(pd))
             {
                 return false;
             }
@@ -367,7 +366,7 @@ namespace Luma.SimpleEntity.Generators
             // ----------------------------------------------------------------
             // Property type ref
             // ----------------------------------------------------------------
-            var propTypeReference = CodeGenUtilities.GetTypeReference(propertyType, this.ClientProxyGenerator, this.ProxyClass);
+            var propTypeReference = CodeGenUtilities.GetTypeReference(propertyType, ClientProxyGenerator, ProxyClass);
 
             // ----------------------------------------------------------------
             // Property decl
@@ -380,7 +379,7 @@ namespace Luma.SimpleEntity.Generators
 
             // Generate <summary> for property
             string comment = string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Entity_Property_Summary_Comment, propertyName);
-            property.Comments.AddRange(CodeGenUtilities.GenerateSummaryCodeComment(comment, this.ClientProxyGenerator.IsCSharp));
+            property.Comments.AddRange(CodeGenUtilities.GenerateSummaryCodeComment(comment, ClientProxyGenerator.IsCSharp));
 
             // ----------------------------------------------------------------
             // [DataMember] -> Add if not already present.
@@ -389,7 +388,7 @@ namespace Luma.SimpleEntity.Generators
 
             if (!propertyAttributes.OfType<DataMemberAttribute>().Any())
             {
-                CodeAttributeDeclaration dataMemberAtt = CodeGenUtilities.CreateAttributeDeclaration(typeof(DataMemberAttribute), this.ClientProxyGenerator, this.ProxyClass);
+                CodeAttributeDeclaration dataMemberAtt = CodeGenUtilities.CreateAttributeDeclaration(typeof(DataMemberAttribute), ClientProxyGenerator, ProxyClass);
                 property.CustomAttributes.Add(dataMemberAtt);
             }
 
@@ -408,7 +407,7 @@ namespace Luma.SimpleEntity.Generators
             // if not already there. DataSources windows do not handle complex types
             if (TypeUtility.IsSupportedComplexType(propertyType) && !propertyAttributes.OfType<DisplayAttribute>().Any())
             {
-                CodeAttributeDeclaration displayAttribute = CodeGenUtilities.CreateDisplayAttributeDeclaration(this.ClientProxyGenerator, this.ProxyClass);
+                CodeAttributeDeclaration displayAttribute = CodeGenUtilities.CreateDisplayAttributeDeclaration(ClientProxyGenerator, ProxyClass);
                 property.CustomAttributes.Add(displayAttribute);
             }
 
@@ -417,9 +416,9 @@ namespace Luma.SimpleEntity.Generators
             // ----------------------------------------------------------------
 
             CustomAttributeGenerator.GenerateCustomAttributes(
-                this.ClientProxyGenerator,
-                this.ProxyClass,
-                ex => string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_ThrewException_CodeTypeMember, ex.Message, property.Name, this.ProxyClass.Name, ex.InnerException.Message),
+                ClientProxyGenerator,
+                ProxyClass,
+                ex => string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_ThrewException_CodeTypeMember, ex.Message, property.Name, ProxyClass.Name, ex.InnerException.Message),
                 propertyAttributes.Cast<Attribute>(),
                 property.CustomAttributes,
                 property.Comments);
@@ -429,7 +428,7 @@ namespace Luma.SimpleEntity.Generators
             // ----------------------------------------------------------------
             string fieldName = CodeGenUtilities.MakeCompliantFieldName(propertyName);
             var field = new CodeMemberField(propTypeReference, fieldName);
-            this.ProxyClass.Members.Add(field);
+            ProxyClass.Members.Add(field);
             var fieldRef = new CodeFieldReferenceExpression(new CodeThisReferenceExpression(), fieldName);
             var valueRef = new CodePropertySetValueReferenceExpression();
 
@@ -444,9 +443,9 @@ namespace Luma.SimpleEntity.Generators
             List<CodeStatement> bodyStatements = new List<CodeStatement>();
 
             // this.OnPropertyXxxChanging(PropType value);
-            bodyStatements.Add(this.NotificationMethodGen.GetMethodInvokeExpressionStatementFor(propertyName + "Changing"));
+            bodyStatements.Add(NotificationMethodGen.GetMethodInvokeExpressionStatementFor(propertyName + "Changing"));
 
-            bool propertyIsReadOnly = this.IsPropertyReadOnly(propertyDescriptor);
+            bool propertyIsReadOnly = IsPropertyReadOnly(propertyDescriptor);
             if (!propertyIsReadOnly)
             {
                 bodyStatements.Add(new CodeExpressionStatement(new CodeMethodInvokeExpression(new CodeThisReferenceExpression(), "RaiseDataMemberChanging", new CodePrimitiveExpression(propertyDescriptor.Name))));
@@ -470,17 +469,17 @@ namespace Luma.SimpleEntity.Generators
             }
 
             // this.OnPropertyXxxChanged();
-            bodyStatements.Add(this.NotificationMethodGen.GetMethodInvokeExpressionStatementFor(propertyName + "Changed"));
+            bodyStatements.Add(NotificationMethodGen.GetMethodInvokeExpressionStatementFor(propertyName + "Changed"));
 
             // if (this._field != value)...
-            CodeExpression valueTest = CodeGenUtilities.MakeNotEqual(propertyType, fieldRef, valueRef, this.ClientProxyGenerator.IsCSharp);
+            CodeExpression valueTest = CodeGenUtilities.MakeNotEqual(propertyType, fieldRef, valueRef, ClientProxyGenerator.IsCSharp);
 
             CodeConditionStatement body = new CodeConditionStatement(valueTest, bodyStatements.ToArray<CodeStatement>());
 
             property.SetStatements.Add(body);
 
             // add property
-            this.ProxyClass.Members.Add(property);
+            ProxyClass.Members.Add(property);
         }
 
         /// <summary>
@@ -504,7 +503,7 @@ namespace Luma.SimpleEntity.Generators
             IEnumerable<Attribute> defaultMemberAttribs = typeAttributes.Cast<Attribute>().Where(a => a.GetType() == typeof(DefaultMemberAttribute));
             if (defaultMemberAttribs.Any())
             {
-                HashSet<string> properties = new HashSet<string>(TypeDescriptor.GetProperties(this.Type).Cast<PropertyDescriptor>().Select(p => p.Name), StringComparer.Ordinal);
+                HashSet<string> properties = new HashSet<string>(TypeDescriptor.GetProperties(Type).Cast<PropertyDescriptor>().Select(p => p.Name), StringComparer.Ordinal);
                 foreach (DefaultMemberAttribute attrib in defaultMemberAttribs)
                 {
                     if (!properties.Contains(attrib.MemberName))
@@ -524,31 +523,31 @@ namespace Luma.SimpleEntity.Generators
         /// </summary>
         private void GenerateProperties()
         {
-            IEnumerable<PropertyDescriptor> properties = TypeDescriptor.GetProperties(this.Type)
+            IEnumerable<PropertyDescriptor> properties = TypeDescriptor.GetProperties(Type)
                 .Cast<PropertyDescriptor>()
                 .OrderBy(p => p.Name);
 
             foreach (PropertyDescriptor pd in properties)
             {
-                if (!this.ShouldDeclareProperty(pd))
+                if (!ShouldDeclareProperty(pd))
                 {
                     continue;
                 }
 
                 // Generate a property getter/setter pair for every property whose type
                 // we support. Non supported property types will be skipped.
-                if (this.CanGenerateProperty(pd))
+                if (CanGenerateProperty(pd))
                 {
                     // Ensure the property is not virtual, abstract or new
                     // If there is a violation, we log the error and keep
                     // running to accumulate all such errors.  This function
                     // may return an "okay" for non-error case polymorphics.
-                    if (!this.CanGeneratePropertyIfPolymorphic(pd))
+                    if (!CanGeneratePropertyIfPolymorphic(pd))
                     {
                         continue;
                     }
 
-                    if (!this.GenerateNonSerializableProperty(pd))
+                    if (!GenerateNonSerializableProperty(pd))
                     {
                         Type propType = CodeGenUtilities.TranslateType(pd.PropertyType);
                         List<Type> typesToCodeGen = new List<Type>();
@@ -578,7 +577,19 @@ namespace Luma.SimpleEntity.Generators
                             if (nonNullableType.IsEnum)
                             {
                                 // Register use of this enum type, which could cause deferred generation
-                                this.ClientProxyGenerator.RegisterUseOfEnumType(nonNullableType);
+                                ClientProxyGenerator.RegisterUseOfEnumType(nonNullableType);
+                            }
+                            // If this is not an enum or nullable<enum> and we're not generating the complex type, determine whether this
+                            // property type is visible to the client.  If it is not, log a warning.
+                            else
+                            {
+                                // "Don't know" counts as "no"
+                                CodeMemberShareKind enumShareKind = this.ClientProxyGenerator.GetTypeShareKind(nonNullableType);
+                                if ((enumShareKind & CodeMemberShareKind.Shared) == 0)
+                                {
+                                    this.ClientProxyGenerator.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_PropertyType_Not_Shared, pd.Name, this.Type.FullName, type.FullName, this.ClientProxyGenerator.ClientProjectName));
+                                    isTypeSafeToGenerate = false; // Flag error but continue to allow accumulation of additional errors.
+                                }
                             }
                         }
 
@@ -590,18 +601,18 @@ namespace Luma.SimpleEntity.Generators
                             // property type is defined in the project's root namespace and that VB prepends
                             // that namespace.  The utility helper gives us the right type reference.
                             CodeTypeReference parameterTypeRef =
-                                CodeGenUtilities.GetTypeReference(propType, this.ClientProxyGenerator, this.ProxyClass);
+                                CodeGenUtilities.GetTypeReference(propType, ClientProxyGenerator, ProxyClass);
 
-                            this.NotificationMethodGen.AddMethodFor(pd.Name + "Changing", new CodeParameterDeclarationExpression(parameterTypeRef, "value"), null);
-                            this.NotificationMethodGen.AddMethodFor(pd.Name + "Changed", null);
+                            NotificationMethodGen.AddMethodFor(pd.Name + "Changing", new CodeParameterDeclarationExpression(parameterTypeRef, "value"), null);
+                            NotificationMethodGen.AddMethodFor(pd.Name + "Changed", null);
 
-                            this.GenerateProperty(pd);
+                            GenerateProperty(pd);
                         }
                     }
                 }
                 else
                 {
-                    this.OnPropertySkipped(pd);
+                    OnPropertySkipped(pd);
                 }
             }
         }

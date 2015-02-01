@@ -1,20 +1,15 @@
-﻿using Luma.SimpleEntity;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
+using System.Globalization;
+using System.Reflection;
 using Luma.SimpleEntity.Helpers;
 using Luma.SimpleEntity.Tools.Pdb.SymStore;
 using Luma.SimpleEntity.Tools.SharedTypes;
 
-namespace Luma.SimpleEntity.Tools.SourceLocation
+namespace Luma.SimpleEntity.Pdb
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.SymbolStore;
-    using System.Globalization;
-    using System.Reflection;
-    using SimpleEntity;
-    using SimpleEntity.Tools.Pdb.SymStore;
-    using SimpleEntity.Tools.SharedTypes;
-
     /// <summary>
     /// PDB-based implementation of <see cref="ISourceFileProvider"/> to locate source files for types or methods.
     /// </summary>

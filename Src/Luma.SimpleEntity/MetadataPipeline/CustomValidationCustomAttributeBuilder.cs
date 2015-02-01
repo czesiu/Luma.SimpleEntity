@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Luma.SimpleEntity.MetadataPipeline;
 
 namespace Luma.SimpleEntity.Tools
 {

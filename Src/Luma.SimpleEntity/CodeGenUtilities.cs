@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Luma.SimpleEntity.Helpers;
 using Luma.SimpleEntity.MetadataPipeline;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity
 {
@@ -917,7 +916,7 @@ namespace Luma.SimpleEntity
             bool isVbProjectWithRootNamespace = !codeGenerator.IsCSharp && !string.IsNullOrEmpty(codeGenerator.ClientProxyCodeGenerationOptions.ClientRootNamespace);
 
             bool typeIsGeneratedOnTheClient = (type.IsEnum && codeGenerator.NeedToGenerateEnumType(type)) ||
-                codeGenerator.DomainServiceDescriptions.Any(dsd => dsd.EntityTypes.Contains(type));
+                codeGenerator.EntityDescriptions.Any(dsd => dsd.EntityTypes.Contains(type));
 
             bool typeNameStartsWithRootNamespace = 
                 string.Equals(type.Namespace, _rootNamespace, StringComparison.Ordinal) ||

@@ -19,7 +19,7 @@ namespace Luma.SimpleEntity
     /// whether code elements are shared by the dependent project.
     /// </para>
     /// </remarks>
-    internal interface ISharedCodeService
+    public interface ISharedCodeService
     {
         /// <summary>
         /// Returns a value indicating whether the <see cref="Type"/>specified by <paramref name="typeName"/>

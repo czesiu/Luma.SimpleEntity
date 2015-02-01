@@ -20,13 +20,13 @@ namespace Luma.SimpleEntity
     /// <summary>
     /// Helper base class to generate the client proxy code using a combination of Reflection and CodeDom
     /// </summary>
-    internal abstract class CodeDomClientCodeGenerator : IDomainServiceClientCodeGenerator, ILogger
+    public abstract class CodeDomClientCodeGenerator : IClientCodeGenerator, ILogger
     {
         // This is the logical name of this code generator, which is used by the ClientCodeGenerationDispatcher
         // when choosing a code generator.  We use our own type name to minimize the chance of duplication
         // by a customer.  Do not change this value because customers will be told to use this string when they
         // want to name the default code generator.
-        internal const string GeneratorName = "Luma.SimpleEntity.CodeDomClientCodeGenerator";
+        public const string GeneratorName = "Luma.SimpleEntity.CodeDomClientCodeGenerator";
 
         /// <summary>
         /// These imports will be added to all namespaces generated in the client proxy file
@@ -49,15 +49,16 @@ namespace Luma.SimpleEntity
         private HashSet<Type> _enumTypesToGenerate;
         private ClientCodeGenerationOptions _clientProxyCodeGenerationOptions;
         private ICodeGenerationHost _host;
-        private List<EntityDescription> _domainServiceDescriptions;
+        private List<EntityDescription> _entityDescriptions;
 
-        #region DomainServiceClientCodeGenerator Members
-        public string GenerateCode(ICodeGenerationHost host, IEnumerable<EntityDescription> descriptions, ClientCodeGenerationOptions options)
+        #region ClientCodeGenerator Members
+
+        public string GenerateCode(ICodeGenerationHost host, IEnumerable<EntityDescription> entityDescriptions, ClientCodeGenerationOptions options)
         {
             try
             {
                 // Initialize all instance state
-                this.Initialize(host, descriptions, options);
+                this.Initialize(host, entityDescriptions, options);
 
                 // Generate the code
                 return this.GenerateProxyClass();
@@ -90,7 +91,7 @@ namespace Luma.SimpleEntity
             this._host = host;
             this._clientProxyCodeGenerationOptions = options;
 
-            this._domainServiceDescriptions = descriptions.ToList();
+            this._entityDescriptions = descriptions.ToList();
             this._compileUnit = new CodeCompileUnit();
 
             this._namespaces = new Dictionary<string, CodeNamespace>();
@@ -127,13 +128,14 @@ namespace Luma.SimpleEntity
             this._compileUnit = null;
             this._namespaces = null;
             this._enumTypesToGenerate = null;
-            this._domainServiceDescriptions = null;
+            this._entityDescriptions = null;
             this._host = null;
             this._options = null;
             this._clientProxyCodeGenerationOptions = null;
         }
 
-        #endregion DomainServiceClientCodeGenerator Members
+        #endregion ClientCodeGenerator Members
+
         /// <summary>
         /// Creates a new instance.
         /// </summary>
@@ -154,11 +156,11 @@ namespace Luma.SimpleEntity
             }
         }
 
-        internal IEnumerable<EntityDescription> DomainServiceDescriptions
+        internal IEnumerable<EntityDescription> EntityDescriptions
         {
             get
             {
-                return this._domainServiceDescriptions.ToArray();
+                return this._entityDescriptions.ToArray();
             }
         }
 
@@ -220,31 +222,31 @@ namespace Luma.SimpleEntity
 
         private string GenerateProxyClass()
         {
-            string generatedCode = string.Empty;
+            var generatedCode = string.Empty;
 
-            // Analyze the assemblies to extract all the DomainServiceDescriptions
-            ICollection<EntityDescription> allDescriptions = this._domainServiceDescriptions;
-            List<Type> generatedEntityTypes = new List<Type>();
-            List<Type> generatedComplexTypes = new List<Type>();
-            Dictionary<Type, CodeTypeDeclaration> typeMapping = new Dictionary<Type, CodeTypeDeclaration>();
+            // Analyze the assemblies to extract all the EntityDescriptions
+            var allDescriptions = _entityDescriptions;
+            var generatedEntityTypes = new List<Type>();
+            var generatedComplexTypes = new List<Type>();
+            var typeMapping = new Dictionary<Type, CodeTypeDeclaration>();
 
             // Used to queue CodeProcessor invocations
-            Queue<CodeProcessorWorkItem> codeProcessorQueue = new Queue<CodeProcessorWorkItem>();
+            var codeProcessorQueue = new Queue<CodeProcessorWorkItem>();
 
             // Before we begin codegen, we want to register type names with our codegen
             // utilities so that we can avoid type name conflicts later.
-            this.PreprocessProxyTypes();
+            PreprocessProxyTypes();
 
-            // Generate a new domain service proxy class for each domain service we found.
-            // OrderBy type name of DomainService to give code-gen predictability
-            foreach (EntityDescription dsd in allDescriptions)
+            // Generate a new proxy class for each entity we found.
+            // OrderBy type name of entity to give code-gen predictability
+            foreach (var dsd in allDescriptions)
             {
                 // If we detect the client already has the DomainContext we would have
-                // generated, skip it.  This condition arises when the client has references
+                // generated, skip it. This condition arises when the client has references
                 // to class libraries as well as a code-gen link to the server which has
                 // references to the server-side equivalent libraries.  Without this check, we would
                 // re-generate the same DomainContext that already lives in the class library.
-                CodeMemberShareKind domainContextShareKind = 0;//this.GetDomainContextTypeMemberShareKind(dsd);
+                CodeMemberShareKind domainContextShareKind = GetEntityTypeMemberShareKind(dsd);
                 if ((domainContextShareKind & CodeMemberShareKind.Shared) != 0)
                 {
                     LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.Shared_DomainContext_Skipped));
@@ -252,7 +254,7 @@ namespace Luma.SimpleEntity
                 }
 
                 // Log information level message to help users see progress and debug code-gen issues
-                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Generating_DomainService, "DDDDD"));
+                LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Generating));
 
                 // Generate all entities.
                 GenerateDataContractTypes(dsd.EntityTypes, generatedEntityTypes, Resource.ClientCodeGen_EntityTypesCannotBeShared_Reference, t =>
@@ -261,7 +263,7 @@ namespace Luma.SimpleEntity
                 });
             }
 
-            // If there are no descriptions, we do not generate any client proxies
+            // If there are no entityDescriptions, we do not generate any client proxies
             // We don't consider this an error, since this task might be invoked before the user has created any.
             if (allDescriptions.Count == 0)
             {
@@ -279,7 +281,7 @@ namespace Luma.SimpleEntity
             {
                 // Allow CodeProcessors to do post processing work
                 CodeProcessorWorkItem workItem = codeProcessorQueue.Dequeue();
-                this.InvokeDomainServiceCodeProcessor(workItem);
+                this.InvokeCodeProcessor(workItem);
             }
 
             // Write the entire "file" to a single string to permit us to redirect it
@@ -294,6 +296,12 @@ namespace Luma.SimpleEntity
             }
 
             return generatedCode;
+        }
+
+        private CodeMemberShareKind GetEntityTypeMemberShareKind(EntityDescription dsd)
+        {
+            // TODO: Do it
+            return 0;
         }
 
         /// <summary>
@@ -478,16 +486,17 @@ namespace Luma.SimpleEntity
                     continue;
                 }
 
-                // More expensive check -- determine whether some already existing DomainContext
-                // visible to the client has generated this same type.  This condition arises
-                // when multiple DomainServices living in different assemblies become visible
-                // to this code gen process.  We disallow code gen when the type is already visible.
+                // More expensive check -- determine whether some type already
+                // visible to the client has generated this same type. This condition arises
+                // when entity living in different assembly become visible
+                // to this code gen process. We disallow code gen when the type is already visible.
                 // The user can acheive accessing multiple types through references to libraries.
-                CodeMemberShareKind typeShareKind = this.GetTypeShareKind(t);
+                CodeMemberShareKind typeShareKind = GetTypeShareKind(t);
+
                 if (typeShareKind == CodeMemberShareKind.SharedByReference)
                 {
                     // Log error, but continue as to allow other errors/warnings to collect.
-                    this.LogError(string.Format(CultureInfo.CurrentCulture, sharedError, t));
+                    LogError(string.Format(CultureInfo.CurrentCulture, sharedError, t));
                     continue;
                 }
 
@@ -536,7 +545,7 @@ namespace Luma.SimpleEntity
         /// Examines a <see cref="EntityDescription"/> to discover and invoke <see cref="CodeProcessor"/> types.
         /// </summary>
         /// <param name="workItem">The <see cref="CodeProcessorWorkItem"/> unit of work.</param>
-        private void InvokeDomainServiceCodeProcessor(CodeProcessorWorkItem workItem)
+        private void InvokeCodeProcessor(CodeProcessorWorkItem workItem)
         {
             Type codeProcessorType = workItem.CodeProcessorType;
             EntityDescription entityDescription = workItem.EntityDescription;
@@ -548,7 +557,7 @@ namespace Luma.SimpleEntity
                 this.LogError(
                     string.Format(
                         CultureInfo.CurrentCulture,
-                        Resource.ClientCodeGen_DomainService_CodeProcessor_NotValidType,
+                        Resource.ClientCodeGen_CodeProcessor_NotValidType,
                         codeProcessorType));
                 return;
             }
@@ -566,7 +575,7 @@ namespace Luma.SimpleEntity
                 this.LogError(
                     string.Format(
                         CultureInfo.CurrentCulture,
-                        Resource.ClientCodeGen_DomainService_CodeProcessor_InvalidConstructorSignature,
+                        Resource.ClientCodeGen_CodeProcessor_InvalidConstructorSignature,
                         codeProcessorType,
                         typeof(CodeDomProvider)));
                 return;
@@ -596,7 +605,7 @@ namespace Luma.SimpleEntity
                 this.LogError(
                     string.Format(
                         CultureInfo.CurrentCulture,
-                        Resource.ClientCodeGen_DomainService_CodeProcessor_ExceptionCaught,
+                        Resource.ClientCodeGen_CodeProcessor_ExceptionCaught,
                         codeProcessorType,
                         ex.Message));
 
@@ -638,9 +647,6 @@ namespace Luma.SimpleEntity
         /// </remarks>
         /// <param name="code">the VB code</param>
         /// <returns>the fixed up VB code</returns>
-        // WARNING:
-        // This code is copied verbatim to Microsoft.VisualStudio.ServiceModel.DomainServices.Tools.CodeGenContext.cs class
-        // changes in this code will likely be required to be ported to that class as well.
         private string FixupVBOptionStatements(string code)
         {
             if (!this.IsCSharp && code != null)
@@ -668,11 +674,11 @@ namespace Luma.SimpleEntity
         }
 
         /// <summary>
-        /// Preprocesses DomainService and Entity type names to enforce nesting restrictions and avoid conflicts later in codegen.
+        /// Preprocesses Entity type names to enforce nesting restrictions and avoid conflicts later in codegen.
         /// </summary>
         private void PreprocessProxyTypes()
         {
-            foreach (EntityDescription dsd in this.DomainServiceDescriptions)
+            foreach (EntityDescription dsd in this.EntityDescriptions)
             {
                 // Register all associated Entity type names
                 foreach (Type entityType in dsd.EntityTypes)
@@ -698,14 +704,14 @@ namespace Luma.SimpleEntity
             // Check if we're in conflict
             if (!CodeGenUtilities.RegisterTypeName(type, containingNamespace))
             {
-                // Aggressively check for potential conflicts across other DomainService entity types.
+                // Aggressively check for potential conflicts across other entity types.
                 IEnumerable<Type> potentialConflicts =
                     // Entity types with namespace matches
-                    this.DomainServiceDescriptions
-                        .SelectMany<EntityDescription, Type>(d => d.EntityTypes)
+                    EntityDescriptions
+                        .SelectMany(d => d.EntityTypes)
                             .Where(entity => entity.Namespace == type.Namespace).Distinct();
 
-                foreach (Type potentialConflict in potentialConflicts)
+                foreach (var potentialConflict in potentialConflicts)
                 {
                     // Register potential conflicts so we qualify type names correctly
                     // later during codegen.

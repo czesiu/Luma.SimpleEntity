@@ -8,13 +8,13 @@ using Luma.SimpleEntity.Server;
 namespace Luma.SimpleEntity
 {
     /// <summary>
-    /// Represents a catalog of DomainServices.
+    /// Represents a catalog of entities.
     /// </summary>
-    internal class EntityCatalog
+    public class EntityCatalog
     {
         private readonly HashSet<string> _assembliesToLoad;
         private Dictionary<Assembly, bool> _loadedAssemblies;
-        private readonly List<EntityDescription> _domainServiceDescriptions = new List<EntityDescription>();
+        private readonly List<EntityDescription> _entityDescriptions = new List<EntityDescription>();
         private readonly ILogger _logger;
 
         /// <summary>
@@ -40,7 +40,32 @@ namespace Luma.SimpleEntity
             _assembliesToLoad = new HashSet<string>(assembliesToLoad, StringComparer.OrdinalIgnoreCase);
 
             LoadAllAssembliesAndSetAssemblyResolver();
-            AddDomainServiceDescriptions();
+            AddEntityDescriptions();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EntityCatalog"/> class that permits code gen over a list of domain services
+        /// </summary>
+        /// <param name="entityTypes">list of domain service types to generate code for</param>
+        /// <param name="logger">logger for logging messages while processing</param>
+        /// <exception cref="ArgumentNullException"> is thrown if <paramref name="entityTypes"/> or <paramref name="logger"/> is null.</exception>
+        public EntityCatalog(IEnumerable<Type> entityTypes, ILogger logger)
+        {
+            if (entityTypes == null)
+            {
+                throw new ArgumentNullException("entityTypes");
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException("logger");
+            }
+
+            _logger = logger;
+
+
+            AddEntityDescriptions(entityTypes);
+            
         }
 
         /// <summary>
@@ -82,18 +107,18 @@ namespace Luma.SimpleEntity
         /// <summary>
         /// Gets a collection of domain service descriptions
         /// </summary>
-        public ICollection<EntityDescription> DomainServiceDescriptions
+        public ICollection<EntityDescription> EntityDescriptions
         {
             get
             {
-                return _domainServiceDescriptions;
+                return _entityDescriptions;
             }
         }
 
         /// <summary>
-        /// Looks at all loaded assemblies and adds EntityDescription for each DomainService found
+        /// Looks at all loaded assemblies and adds EntityDescription for each entity found
         /// </summary>
-        private void AddDomainServiceDescriptions()
+        private void AddEntityDescriptions()
         {
             var entityDescription = new EntityDescription();
 
@@ -103,7 +128,7 @@ namespace Luma.SimpleEntity
                 if (pair.Value)
                 {
                     // Utility autorecovers and logs for common exceptions
-                    IEnumerable<Type> types = AssemblyUtilities.GetExportedTypes(pair.Key, _logger);
+                    var types = AssemblyUtilities.GetExportedTypes(pair.Key, _logger);
 
                     foreach (var type in types)
                     {
@@ -123,7 +148,24 @@ namespace Luma.SimpleEntity
 
             if (entityDescription.EntityTypes.Any())
             {
-                _domainServiceDescriptions.Add(entityDescription);
+                _entityDescriptions.Add(entityDescription);
+            }
+        }
+
+        private void AddEntityDescriptions(IEnumerable<Type> entityTypes)
+        {
+            var entityDescription = new EntityDescription();
+
+            foreach (var entityType in entityTypes)
+            {
+                entityDescription.AddEntityType(entityType);
+            }
+
+            entityDescription.Initialize();
+
+            if (entityDescription.EntityTypes.Any())
+            {
+                _entityDescriptions.Add(entityDescription);
             }
         }
 
@@ -139,7 +181,7 @@ namespace Luma.SimpleEntity
                 Assembly assembly = AssemblyUtilities.LoadAssembly(assemblyName, _logger);
                 if (assembly != null)
                 {
-                    // The bool value indicates whether this assembly should be searched for a DomainService
+                    // The bool value indicates whether this assembly should be searched for a Entity
                     _loadedAssemblies[assembly] = !assembly.IsSystemAssembly();
                 }
             }

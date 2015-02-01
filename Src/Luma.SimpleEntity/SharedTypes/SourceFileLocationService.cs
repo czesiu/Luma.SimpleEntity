@@ -19,7 +19,7 @@
     /// but instead delegates that policy to the <see cref="ISourceFileProviderFactory"/>
     /// instances it has been given.
     /// </remarks>
-    internal class SourceFileLocationService : ISourceFileLocationService, IDisposable
+    public class SourceFileLocationService : ISourceFileLocationService, IDisposable
     {
         private ISourceFileProvider[] _providers;
         private FilenameMap _filenameMap;

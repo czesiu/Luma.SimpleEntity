@@ -1,24 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
-using ILogger = Luma.SimpleEntity.ILogger;
-#if NET40
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Exceptions;
-using Microsoft.Build.Execution;
-using Microsoft.Build.Framework;
-#else
-using Microsoft.Build.BuildEngine;
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-#endif // NET40
 
-namespace Luma.SimpleEntity.Tools
+namespace Luma.SimpleEntity
 {
     /// <summary>
     /// This utility class offers basic support for reading MSBuild

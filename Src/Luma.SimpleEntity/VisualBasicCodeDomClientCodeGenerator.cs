@@ -9,8 +9,8 @@ namespace Luma.SimpleEntity
     /// This internal class exists solely to provide a unique export
     /// for the VisualBasic language.
     /// </remarks>
-    [DomainServiceClientCodeGenerator(CodeDomClientCodeGenerator.GeneratorName, "VB")]
-    internal class VisualBasicCodeDomClientCodeGenerator : CodeDomClientCodeGenerator
+    [ClientCodeGenerator(CodeDomClientCodeGenerator.GeneratorName, "VB")]
+    public class VisualBasicCodeDomClientCodeGenerator : CodeDomClientCodeGenerator
     {
     }
 }

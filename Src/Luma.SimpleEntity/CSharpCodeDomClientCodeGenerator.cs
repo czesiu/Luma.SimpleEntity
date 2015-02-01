@@ -9,8 +9,8 @@ namespace Luma.SimpleEntity
     /// This internal class exists solely to provide a unique export
     /// for the C# language.
     /// </remarks>
-    [DomainServiceClientCodeGenerator(CodeDomClientCodeGenerator.GeneratorName, "C#")]
-    internal class CSharpCodeDomClientCodeGenerator : CodeDomClientCodeGenerator
+    [ClientCodeGenerator(CodeDomClientCodeGenerator.GeneratorName, "C#")]
+    public class CSharpCodeDomClientCodeGenerator : CodeDomClientCodeGenerator
     {
     }
 }

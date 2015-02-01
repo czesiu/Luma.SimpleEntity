@@ -1,11 +1,10 @@
 ﻿using System;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity
 {
     /// <summary>
     /// Class to hold options used for
-    /// <see cref="Luma.SimpleEntity.Server.DomainService"/>
+    /// <see cref="Luma.Client.Entity"/>
     /// client code generation.
     /// </summary>
     /// <remarks>

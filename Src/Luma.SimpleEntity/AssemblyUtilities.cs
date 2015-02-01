@@ -7,16 +7,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Luma.SimpleEntity.Helpers;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity
 {
     /// <summary>
     /// Assembly level utilities.
     /// </summary>
-    internal static class AssemblyUtilities
+    public static class AssemblyUtilities
     {
-        private static ConcurrentDictionary<string, Assembly> loadedAssemblyNames;
+        private static ConcurrentDictionary<string, Assembly> _loadedAssemblyNames;
 
         /// <summary>
         /// Creates a dictionary of assemblyNames and assemblies and sets the AssemblyResolver for the current AppDomain.
@@ -24,13 +23,13 @@ namespace Luma.SimpleEntity
         /// <param name="assemblies">List of loaded assemblies</param>
         internal static void SetAssemblyResolver(IEnumerable<Assembly> assemblies)
         {
-            ConcurrentDictionary<string, Assembly> assemblyNames = new ConcurrentDictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
+            var assemblyNames = new ConcurrentDictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
             foreach (var assembly in assemblies)
             {
                 // Keep a dictionary of assembly names and assemblies. It is used in the AssemblyResolve event handler.
                 assemblyNames[assembly.FullName] = assembly;
 
-                // If the assembly is a signed Open Ria assembly, then also add an entry
+                // If the assembly is a signed Simple Entity assembly, then also add an entry
                 // so that it is used in places where the of unsigned version of the assembly is requested
                 var assemblyName = assembly.GetName();
                 if(assemblyName.IsSimpleEntityAssembly() && assemblyName.IsSigned())
@@ -40,13 +39,13 @@ namespace Luma.SimpleEntity
                     assemblyNames[unsignedName.FullName] = assembly;
                 }
             }
-            loadedAssemblyNames = assemblyNames;
+            _loadedAssemblyNames = assemblyNames;
 
             // Unregister the event handler first, in case it was registered before. If it wasn't, this would be a no-op.
-            AppDomain.CurrentDomain.AssemblyResolve -= new ResolveEventHandler(AssemblyUtilities.CurrentDomain_AssemblyResolveEventHandler);
+            AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolveEventHandler;
             
             // Register the event handler for this call.
-            AppDomain.CurrentDomain.AssemblyResolve += new ResolveEventHandler(AssemblyUtilities.CurrentDomain_AssemblyResolveEventHandler);
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolveEventHandler;
         }
 
         /// <summary>
@@ -60,13 +59,13 @@ namespace Luma.SimpleEntity
         private static Assembly CurrentDomain_AssemblyResolveEventHandler(object sender, ResolveEventArgs args)
         {
             Assembly assembly = null;
-            if (!string.IsNullOrEmpty(args.Name) && loadedAssemblyNames != null)
+            if (!string.IsNullOrEmpty(args.Name) && _loadedAssemblyNames != null)
             {
                 // If we are not able to load the assembly from our pre-populated list, we can check the current
-                // AppDomain for assemblies loaded by reflection when the DomainServiceDescriptions were created.
+                // AppDomain for assemblies loaded by reflection when the EntityDescriptions were created.
                 // This scenario occurs when we have to look up entity types in reference assemblies that Visual
                 // Studio does not specify.
-                assembly = loadedAssemblyNames.GetOrAdd(args.Name,
+                assembly = _loadedAssemblyNames.GetOrAdd(args.Name,
                     name => AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.FullName == name));
             }
 
@@ -417,7 +416,7 @@ namespace Luma.SimpleEntity
         /// </summary>
         /// <param name="assemblyName">assembly name to test</param>
         /// <returns><c>true</c> if the assembly is mscorlib</returns>
-        internal static bool IsAssemblyMsCorlib(AssemblyName assemblyName)
+        public static bool IsAssemblyMsCorlib(AssemblyName assemblyName)
         {
             return String.Compare(assemblyName.Name, "mscorlib", StringComparison.OrdinalIgnoreCase) == 0 && TypeUtility.IsSystemAssembly(assemblyName.FullName);
         }

@@ -98,7 +98,7 @@
 
   <!--
     ================================================================
-    Open Ria Services Link is present
+    Simple Entity Link is present
       CoreCompile will execute SimpleEntityCodeGen to generate code, and
       Clean will exectute SimpleEntityClean to delete it
     ================================================================
@@ -118,7 +118,7 @@
 
   <!--
     ================================================================
-    Open Ria Services Link is absent but residual generated files remain
+    Simple Entity Link is absent but residual generated files remain
       CoreCompile and Clean will both execute SimpleEntityClean
       to delete obsolete generated files.
     ================================================================
@@ -319,13 +319,4 @@
     </CreateClientFilesTask>
 
   </Target>
-
-  <!-- Import the WCF targets for proxy generation if it exists -->
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\Silverlight\v5.0\Microsoft.VisualStudio.ServiceModel.targets"
-          Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\Silverlight\v5.0\Microsoft.VisualStudio.ServiceModel.targets')" />
-
-  <!-- Import the Visual Studio WCF RIA Services package targets file if it exists -->
-  <Import Project="$(MSBuildExtensionsPath)\Microsoft\Silverlight\v5.0\Microsoft.Ria.Client.VisualStudio.targets"
-          Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\Silverlight\v5.0\Microsoft.Ria.Client.VisualStudio.targets')"/>
-
 </Project>

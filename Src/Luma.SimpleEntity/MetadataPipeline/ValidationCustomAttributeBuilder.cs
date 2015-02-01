@@ -2,8 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Reflection;
+using Luma.SimpleEntity.Tools;
 
-namespace Luma.SimpleEntity.Tools
+namespace Luma.SimpleEntity.MetadataPipeline
 {
     /// <summary>
     /// Standard custom attribute builder for ValidationAttributes containing globalized resources.

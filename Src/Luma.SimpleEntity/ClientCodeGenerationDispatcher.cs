@@ -23,7 +23,7 @@ namespace Luma.SimpleEntity
     /// <remarks>
     /// This class is <see cref="MarshalByRefObject"/> so that it can be invoked across
     /// AppDomain boundaries.</remarks>
-    internal class ClientCodeGenerationDispatcher : MarshalByRefObject, IRegisteredObject, IDisposable
+    public class ClientCodeGenerationDispatcher : MarshalByRefObject, IRegisteredObject, IDisposable
     {
         // MEF composition container and part catalog, computed lazily and only once
         private CompositionContainer _compositionContainer;
@@ -37,8 +37,8 @@ namespace Luma.SimpleEntity
         }
 
         // MEF import of all code generators
-        [ImportMany(typeof(IDomainServiceClientCodeGenerator))]
-        internal IEnumerable<Lazy<IDomainServiceClientCodeGenerator, ICodeGeneratorMetadata>> DomainServiceClientCodeGenerators { get; set; }
+        [ImportMany(typeof(IClientCodeGenerator))]
+        public IEnumerable<Lazy<IClientCodeGenerator, ICodeGeneratorMetadata>> ClientCodeGenerators { get; set; }
 
         /// <summary>
         /// Generates client proxy source code using the generator specified by <paramref name="codeGeneratorName"/>.
@@ -48,7 +48,7 @@ namespace Luma.SimpleEntity
         /// <param name="loggingService">The service to use for logging.</param>
         /// <param name="codeGeneratorName">Optional generator name.  A <c>null</c> or empty value will select the default generator.</param>
         /// <returns>The generated source code or <c>null</c> if none was generated.</returns>
-        internal string GenerateCode(ClientCodeGenerationOptions options, SharedCodeServiceParameters parameters, ILoggingService loggingService, string codeGeneratorName)
+        public string GenerateCode(ClientCodeGenerationOptions options, SharedCodeServiceParameters parameters, ILoggingService loggingService, string codeGeneratorName)
         {
             Debug.Assert(options != null, "options cannot be null");
             Debug.Assert(parameters != null, "parameters cannot be null");
@@ -72,7 +72,7 @@ namespace Luma.SimpleEntity
         /// <param name="assembliesToLoad">The set of server assemblies to use for analysis and composition.</param>
         /// <param name="codeGeneratorName">Optional generator name.  A <c>null</c> or empty value will select the default generator.</param>
         /// <returns>The generated source code or <c>null</c> if none was generated.</returns>
-        internal string GenerateCode(ICodeGenerationHost host, ClientCodeGenerationOptions options, IEnumerable<string> assembliesToLoad, string codeGeneratorName)
+        public string GenerateCode(ICodeGenerationHost host, ClientCodeGenerationOptions options, IEnumerable<string> assembliesToLoad, string codeGeneratorName)
         {
             Debug.Assert(host != null, "host cannot be null");
             Debug.Assert(options != null, "options cannot be null");
@@ -83,31 +83,54 @@ namespace Luma.SimpleEntity
             return this.GenerateCode(host, options, catalog, assembliesToLoad, codeGeneratorName);
         }
 
+
+
         /// <summary>
         /// Generates client proxy source code using the specified <paramref name="codeGeneratorName"/> in the context
         /// of the specified <paramref name="host"/>.
         /// </summary>
         /// <param name="host">The host for code generation.</param>
         /// <param name="options">The options to use for code generation.</param>
-        /// <param name="catalog">The catalog containing the <see cref="Luma.SimpleEntity.Server.DomainService"/> types.</param>
+        /// <param name="entityTypes">The set of <see cref="Luma.Client.Entity"/> types for which to generate code.</param>
         /// <param name="compositionAssemblies">The optional set of assemblies to use to create the MEF composition container.</param>
         /// <param name="codeGeneratorName">Optional generator name.  A <c>null</c> or empty value will select the default generator.</param>
         /// <returns>The generated source code or <c>null</c> if none was generated.</returns>
-        private string GenerateCode(ICodeGenerationHost host, ClientCodeGenerationOptions options, EntityCatalog catalog, IEnumerable<string> compositionAssemblies, string codeGeneratorName)
+        public string GenerateCode(ICodeGenerationHost host, ClientCodeGenerationOptions options, IEnumerable<Type> entityTypes, IEnumerable<string> compositionAssemblies, string codeGeneratorName)
+        {
+            Debug.Assert(host != null, "host cannot be null");
+            Debug.Assert(options != null, "options cannot be null");
+            Debug.Assert(entityTypes != null, "entityTypes cannot be null");
+
+            ILogger logger = host as ILogger;
+            var catalog = new EntityCatalog(entityTypes, logger);
+            return this.GenerateCode(host, options, catalog, compositionAssemblies, codeGeneratorName);
+        }
+
+        /// <summary>
+        /// Generates client proxy source code using the specified <paramref name="codeGeneratorName"/> in the context
+        /// of the specified <paramref name="host"/>.
+        /// </summary>
+        /// <param name="host">The host for code generation.</param>
+        /// <param name="options">The options to use for code generation.</param>
+        /// <param name="catalog">The catalog containing the <see cref="Luma.Client.Entity"/> types.</param>
+        /// <param name="compositionAssemblies">The optional set of assemblies to use to create the MEF composition container.</param>
+        /// <param name="codeGeneratorName">Optional generator name.  A <c>null</c> or empty value will select the default generator.</param>
+        /// <returns>The generated source code or <c>null</c> if none was generated.</returns>
+        public string GenerateCode(ICodeGenerationHost host, ClientCodeGenerationOptions options, EntityCatalog catalog, IEnumerable<string> compositionAssemblies, string codeGeneratorName)
         {
             Debug.Assert(host != null, "host cannot be null");
             Debug.Assert(options != null, "options cannot be null");
             Debug.Assert(catalog != null, "catalog cannot be null");
 
-            IEnumerable<EntityDescription> domainServiceDescriptions = catalog.DomainServiceDescriptions;
-            IDomainServiceClientCodeGenerator proxyGenerator = this.FindCodeGenerator(host, options, compositionAssemblies, codeGeneratorName);
+            IEnumerable<EntityDescription> entityDescriptions = catalog.EntityDescriptions;
+            IClientCodeGenerator proxyGenerator = FindCodeGenerator(host, options, compositionAssemblies, codeGeneratorName);
             string generatedCode = null;
 
             if (proxyGenerator != null)
             {
                 try
                 {
-                    generatedCode = proxyGenerator.GenerateCode(host, domainServiceDescriptions, options);
+                    generatedCode = proxyGenerator.GenerateCode(host, entityDescriptions, options);
                 }
                 catch (Exception ex)
                 {
@@ -122,8 +145,8 @@ namespace Luma.SimpleEntity
                     // It is acceptable to report this exception and "ignore" it because we
                     // are running in a separate AppDomain which will be torn down immediately
                     // after our return.
-                    host.LogError(string.Format(CultureInfo.CurrentCulture, 
-                                                    Resource.CodeGenerator_Threw_Exception, 
+                    host.LogError(string.Format(CultureInfo.CurrentCulture,
+                                                    Resource.CodeGenerator_Threw_Exception,
                                                     string.IsNullOrEmpty(codeGeneratorName) ? proxyGenerator.GetType().FullName : codeGeneratorName,
                                                     options.ClientProjectPath,
                                                     ex.Message));
@@ -134,7 +157,7 @@ namespace Luma.SimpleEntity
         }
 
         /// <summary>
-        /// Locates and returns the <see cref="IDomainServiceClientCodeGenerator"/> to use to generate client proxies
+        /// Locates and returns the <see cref="IClientCodeGenerator"/> to use to generate client proxies
         /// for the specified <paramref name="options"/>.
         /// </summary>
         /// <param name="host">The host for code generation.</param>
@@ -142,7 +165,7 @@ namespace Luma.SimpleEntity
         /// <param name="compositionAssemblies">The optional set of assemblies to use to create the MEF composition container.</param>
         /// <param name="codeGeneratorName">Optional generator name.  A <c>null</c> or empty value will select the default generator.</param>
         /// <returns>The code generator to use, or <c>null</c> if a matching one could not be found.</returns>
-        internal IDomainServiceClientCodeGenerator FindCodeGenerator(ICodeGenerationHost host, ClientCodeGenerationOptions options, IEnumerable<string> compositionAssemblies, string codeGeneratorName)
+        public IClientCodeGenerator FindCodeGenerator(ICodeGenerationHost host, ClientCodeGenerationOptions options, IEnumerable<string> compositionAssemblies, string codeGeneratorName)
         {
             Debug.Assert(host != null, "host cannot be null");
             Debug.Assert(options != null, "options cannot be null");
@@ -152,7 +175,7 @@ namespace Luma.SimpleEntity
                 throw new ArgumentException(Resource.Null_Language_Property, "options");
             }
 
-            IDomainServiceClientCodeGenerator generator = null;
+            IClientCodeGenerator generator = null;
 
             // Try to load the code generator directly if given an assembly qualified name.
             // We insist on at least one comma in the name to know this is an assembly qualified name.
@@ -163,7 +186,7 @@ namespace Luma.SimpleEntity
                 Type codeGeneratorType = Type.GetType(codeGeneratorName, /*throwOnError*/ false);
                 if (codeGeneratorType != null)
                 {
-                    if (!typeof(IDomainServiceClientCodeGenerator).IsAssignableFrom(codeGeneratorType))
+                    if (!typeof(IClientCodeGenerator).IsAssignableFrom(codeGeneratorType))
                     {
                         // If generator is of the incorrect type, we will still allow the MEF approach below
                         // to find a better one.   This path could be exercised by inadvertantly using a name
@@ -174,7 +197,7 @@ namespace Luma.SimpleEntity
                     {
                         try
                         {
-                            generator = Activator.CreateInstance(codeGeneratorType) as IDomainServiceClientCodeGenerator;
+                            generator = Activator.CreateInstance(codeGeneratorType) as IClientCodeGenerator;
                         }
                         catch (Exception e)
                         {
@@ -184,7 +207,7 @@ namespace Luma.SimpleEntity
                             {
                                 throw;
                             }
-                            host.LogError(string.Format(CultureInfo.CurrentCulture, Resource.Code_Generator_Instantiation_Error, codeGeneratorName,  e.Message));
+                            host.LogError(string.Format(CultureInfo.CurrentCulture, Resource.Code_Generator_Instantiation_Error, codeGeneratorName, e.Message));
                         }
                     }
                 }
@@ -196,13 +219,13 @@ namespace Luma.SimpleEntity
                 this.CreateCompositionContainer(compositionAssemblies, host as ILogger);
 
                 // The following property is filled by MEF by the line above.
-                if (this.DomainServiceClientCodeGenerators != null && this.DomainServiceClientCodeGenerators.Any())
+                if (this.ClientCodeGenerators != null && this.ClientCodeGenerators.Any())
                 {
                     // Select only those registered for the required language
-                    IEnumerable<Lazy<IDomainServiceClientCodeGenerator, ICodeGeneratorMetadata>> allImportsForLanguage =
-                        this.DomainServiceClientCodeGenerators.Where(i => string.Equals(options.Language, i.Metadata.Language, StringComparison.OrdinalIgnoreCase));
+                    IEnumerable<Lazy<IClientCodeGenerator, ICodeGeneratorMetadata>> allImportsForLanguage =
+                        this.ClientCodeGenerators.Where(i => string.Equals(options.Language, i.Metadata.Language, StringComparison.OrdinalIgnoreCase));
 
-                    Lazy<IDomainServiceClientCodeGenerator, ICodeGeneratorMetadata> lazyImport = null;
+                    Lazy<IClientCodeGenerator, ICodeGeneratorMetadata> lazyImport = null;
 
                     // If client specified a specific generator, use that one.
                     // If it cannot be found, log an error to explain the problem.
@@ -211,7 +234,7 @@ namespace Luma.SimpleEntity
                     // meaning they would not expect the default to be used.
                     if (!string.IsNullOrEmpty(codeGeneratorName))
                     {
-                        IEnumerable<Lazy<IDomainServiceClientCodeGenerator, ICodeGeneratorMetadata>> allImportsForLanguageAndName = allImportsForLanguage.Where(i => string.Equals(i.Metadata.GeneratorName, codeGeneratorName, StringComparison.OrdinalIgnoreCase));
+                        IEnumerable<Lazy<IClientCodeGenerator, ICodeGeneratorMetadata>> allImportsForLanguageAndName = allImportsForLanguage.Where(i => string.Equals(i.Metadata.GeneratorName, codeGeneratorName, StringComparison.OrdinalIgnoreCase));
 
                         int numberOfMatchingGenerators = allImportsForLanguageAndName.Count();
 
@@ -219,10 +242,10 @@ namespace Luma.SimpleEntity
                         if (numberOfMatchingGenerators == 0)
                         {
                             host.LogError(string.Format(CultureInfo.CurrentCulture,
-                                                        Resource.Code_Generator_Not_Found, 
-                                                        codeGeneratorName, 
-                                                        options.Language, 
-                                                        options.ServerProjectPath, 
+                                                        Resource.Code_Generator_Not_Found,
+                                                        codeGeneratorName,
+                                                        options.Language,
+                                                        options.ServerProjectPath,
                                                         options.ClientProjectPath,
                                                         CodeDomClientCodeGenerator.GeneratorName));
                         }
@@ -240,12 +263,12 @@ namespace Luma.SimpleEntity
                             {
                                 sb.AppendLine("    " + import.Value.GetType().FullName);
                             }
-                            host.LogError(string.Format(CultureInfo.CurrentCulture, 
-                                                        Resource.Multiple_Named_Code_Generators, 
+                            host.LogError(string.Format(CultureInfo.CurrentCulture,
+                                                        Resource.Multiple_Named_Code_Generators,
                                                         codeGeneratorName,
-                                                        options.Language, 
+                                                        options.Language,
                                                         sb.ToString(),
-                                                        options.ServerProjectPath, 
+                                                        options.ServerProjectPath,
                                                         options.ClientProjectPath,
                                                         allImportsForLanguageAndName.First().Value.GetType().AssemblyQualifiedName));
                         }
@@ -265,7 +288,7 @@ namespace Luma.SimpleEntity
                             // Multiple custom generators exist, but a specific generator name was not provided.
                             // Look for any custom generators other than our default CodeDom one.
                             // If we find there is only one custom generator registered, we use that one rather than the default
-                            IEnumerable<Lazy<IDomainServiceClientCodeGenerator, ICodeGeneratorMetadata>> customGeneratorImports =
+                            IEnumerable<Lazy<IClientCodeGenerator, ICodeGeneratorMetadata>> customGeneratorImports =
                                 allImportsForLanguage.Where(i => !string.Equals(CodeDomClientCodeGenerator.GeneratorName, i.Metadata.GeneratorName, StringComparison.OrdinalIgnoreCase));
 
                             int generatorCount = customGeneratorImports.Count();
@@ -283,16 +306,16 @@ namespace Luma.SimpleEntity
                                 StringBuilder sb = new StringBuilder();
 
                                 // Sort for unit test predictability
-                                IEnumerable<Lazy<IDomainServiceClientCodeGenerator, ICodeGeneratorMetadata>> orderedCustomGenerators = customGeneratorImports.OrderBy(i => i.Metadata.GeneratorName);
+                                IEnumerable<Lazy<IClientCodeGenerator, ICodeGeneratorMetadata>> orderedCustomGenerators = customGeneratorImports.OrderBy(i => i.Metadata.GeneratorName);
                                 foreach (var import in orderedCustomGenerators)
                                 {
                                     sb.AppendLine("    " + import.Metadata.GeneratorName);
                                 }
 
-                                host.LogWarning(string.Format(CultureInfo.CurrentCulture, 
-                                                                Resource.Multiple_Custom_Code_Generators_Using_Default, 
-                                                                options.Language, sb.ToString(), 
-                                                                options.ClientProjectPath, 
+                                host.LogWarning(string.Format(CultureInfo.CurrentCulture,
+                                                                Resource.Multiple_Custom_Code_Generators_Using_Default,
+                                                                options.Language, sb.ToString(),
+                                                                options.ClientProjectPath,
                                                                 orderedCustomGenerators.First().Metadata.GeneratorName,
                                                                 CodeDomClientCodeGenerator.GeneratorName));
 
@@ -383,7 +406,7 @@ namespace Luma.SimpleEntity
         void IRegisteredObject.Stop(bool immediate)
         {
         }
-        #endregion   
+        #endregion
 
 
         #region IDisposable members

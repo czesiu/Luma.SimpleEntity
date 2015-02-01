@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Luma.SimpleEntity;
+using Luma.SimpleEntity.Pdb;
 using Luma.SimpleEntity.SourceInfo;
-using Luma.SimpleEntity.Tools.SourceLocation;
 
 namespace Luma.SimpleEntity.Tools.SharedTypes
 {
@@ -17,7 +17,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
     /// This class is also a cache so that subsequent requests for a
     /// given code member can give an immediate return.
     /// </remarks>
-    internal class SharedCodeService : ISharedCodeService, IDisposable
+    public class SharedCodeService : ISharedCodeService, IDisposable
     {
         private SourceFileLocationService _locationService;
         private SharedSourceFiles _sharedSourceFiles;
@@ -28,7 +28,7 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         // The cache is keyed by SharedCodeKey, which describes the code element and serves as a unique key for it.
         private ConcurrentDictionary<CodeMemberKey, SharedCodeDescription> _cachedDescriptions = new ConcurrentDictionary<CodeMemberKey, SharedCodeDescription>();
 
-        internal SharedCodeService(SharedCodeServiceParameters parameters, ILoggingService loggingService)
+        public SharedCodeService(SharedCodeServiceParameters parameters, ILoggingService loggingService)
         {
             Debug.Assert(parameters != null, "parameters cannot be null");
             Debug.Assert(parameters.SharedSourceFiles != null, "sharedSourceFiles cannot be null");

@@ -360,13 +360,6 @@ namespace Luma.SimpleEntity.MetadataPipeline
 
             // Don't cache null builders, because we may be re-using this cache for a next code-gen 
             // run where we may have a different set of shared types.
-            // TODO: We need to get rid of our static caches, because caches look different between 
-            //       builds of different DomainServices. E.g. for one DomainService an attribute may 
-            //       be shared, while in another it's not, and thus the KnownBuilders mapping is
-            //       different between the two.
-            //       Instead of static caches, we should consider storing state per build in a context
-            //       object. The context object would not be shared against different builds of different 
-            //       DomainServices.
             if (cab != null)
             {
                 KnownBuilders[attributeType] = cab;
@@ -386,10 +379,9 @@ namespace Luma.SimpleEntity.MetadataPipeline
             // We are generating failure comments in the following example form:
             //
             //    // Unable to generate the following attribute(s) due to the following error(s):
-            //    // - The attribute 'System.ComponentModel.DataAnnotations.CustomValidationAttribute' references type 'TestDomainServices.ServerOnlyValidator'.  This is not accessible in the client project.
-            //    // [CustomValidationAttribute(typeof(TestDomainServices.ServerOnlyValidator), "IsObjectValid")]
-            //    //
-            CodeCommentStatementCollection comments = new CodeCommentStatementCollection();
+            //    // - The attribute 'System.ComponentModel.DataAnnotations.CustomValidationAttribute' references type 'ServerOnlyValidator'. This is not accessible in the client project.
+            //    // [CustomValidationAttribute(typeof(ServerOnlyValidator), "IsObjectValid")]
+            var comments = new CodeCommentStatementCollection();
             foreach (string error in attributeDeclaration.Errors)
             {
                 comments.Add(new CodeCommentStatement(string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_FailedToGenerate_ErrorTemplate, error)));

@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Luma.SimpleEntity.Tools;
 
 namespace Luma.SimpleEntity
 {
@@ -78,7 +77,7 @@ namespace Luma.SimpleEntity
         /// <summary>
         /// Gets or sets the path where generated code files should go
         /// </summary>
-        internal string GeneratedCodePath
+        public string GeneratedCodePath
         {
             get
             {
@@ -105,7 +104,7 @@ namespace Luma.SimpleEntity
         /// Gets the path of the file where to write the list of generated files
         /// </summary>
         /// <returns>The full path to where to write the list of generated files.</returns>
-        internal string FileListPath()
+        public string FileListPath()
         {
              return Path.Combine(this.GetHistoryFolder(), this.PrependClientProjectName(FileListFileName));
         }
@@ -114,7 +113,7 @@ namespace Luma.SimpleEntity
         /// Gets the path of the file where we write the list of known source projects and their files
         /// </summary>
         /// <returns>The full path to where to write the list of source files.</returns>
-        internal string SourceFileListPath()
+        public string SourceFileListPath()
         {
              return Path.Combine(this.GetHistoryFolder(), this.PrependClientProjectName(SourceFileListFileName));
         }
@@ -123,7 +122,7 @@ namespace Luma.SimpleEntity
         /// Gets the path of the file where we write the list of linked server projects
         /// </summary>
         /// <returns>The full path to where to write the list of linked server project files.</returns>
-        internal string LinkedServerProjectsPath()
+        public string LinkedServerProjectsPath()
         {
              return Path.Combine(this.GetHistoryFolder(), this.PrependClientProjectName(LinkedServerProjectsFileName));
         }
@@ -132,7 +131,7 @@ namespace Luma.SimpleEntity
         /// Gets the path of the file where to write the list of client references
         /// </summary>
         /// <returns>The full path to where to write the list of client references files.</returns>
-        internal string ClientReferenceListPath()
+        public string ClientReferenceListPath()
         {
             return Path.Combine(this.GetHistoryFolder(), this.PrependClientProjectName(ClientReferenceListFileName));
         }
@@ -141,7 +140,7 @@ namespace Luma.SimpleEntity
         /// Gets the path of the file where to write the list of server references
         /// </summary>
         /// <returns>The full path to where to write the list of server references files.</returns>
-        internal string ServerReferenceListPath()
+        public string ServerReferenceListPath()
         {
             return Path.Combine(this.GetHistoryFolder(), this.PrependClientProjectName(ServerReferenceListFileName));
         }
@@ -153,16 +152,16 @@ namespace Luma.SimpleEntity
         {
             get
             {
-                if (this._clientProjectDirectory == null)
+                if (_clientProjectDirectory == null)
                 {
-                    if (this.ClientProjectPath == null)
+                    if (ClientProjectPath == null)
                     {
-                        this.LogError(string.Format(CultureInfo.CurrentCulture, Resource.ProjectPath_Argument_Required, "ClientProjectPath"));
+                        LogError(string.Format(CultureInfo.CurrentCulture, Resource.ProjectPath_Argument_Required, "ClientProjectPath"));
                         return string.Empty;
                     }
-                    this._clientProjectDirectory = Path.GetFullPath(Path.GetDirectoryName(this.ClientProjectPath));
+                    _clientProjectDirectory = Path.GetFullPath(Path.GetDirectoryName(ClientProjectPath));
                 }
-                return this._clientProjectDirectory;
+                return _clientProjectDirectory;
             }
         }
 
@@ -375,7 +374,7 @@ namespace Luma.SimpleEntity
         /// </summary>
         /// <param name="fileName">The full path to the file to delete.</param>
         /// <returns><c>false</c> if an error occurred and the file could not be deleted.</returns>
-        internal bool SafeFileDelete(string fileName)
+        public bool SafeFileDelete(string fileName)
         {
             string errorMessage = null;
             if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
@@ -556,7 +555,7 @@ namespace Luma.SimpleEntity
         /// </remarks>
         /// <param name="directoryPath">The full path to the folder to create.</param>
         /// <returns><c>false</c> if an error occurred and the folder could not be created.</returns>
-        internal bool SafeFolderCreate(string directoryPath)
+        public bool SafeFolderCreate(string directoryPath)
         {
             string errorMessage = null;
             if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
@@ -655,7 +654,7 @@ namespace Luma.SimpleEntity
         /// <param name="content">Content to write to file</param>
         /// <param name="forceWriteToFile">If <c>true</c>, write file always, even if Intellisense only build.</param>
         /// <returns><c>true</c> if the write succeeded, <c>false</c> if it was deleted or the write failed.</returns>
-        internal bool WriteOrDeleteFileToVS(string destinationFile, string content, bool forceWriteToFile)
+        public bool WriteOrDeleteFileToVS(string destinationFile, string content, bool forceWriteToFile)
         {
             if (string.IsNullOrEmpty(content))
             {

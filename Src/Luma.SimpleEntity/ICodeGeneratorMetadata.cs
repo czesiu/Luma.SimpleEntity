@@ -6,7 +6,7 @@
     /// <remarks>
     /// This interface provides a strongly-typed contract for
     /// the metadata exported by code generators through export
-    /// attributes such as <see cref="DomainServiceClientCodeGeneratorAttribute"/>.
+    /// attributes such as <see cref="ClientCodeGeneratorAttribute"/>.
     /// <para>
     /// Code generators are uniquely identified by the combination of the <see cref="GeneratorName"/> 
     /// and <see cref="Language"/> properties.

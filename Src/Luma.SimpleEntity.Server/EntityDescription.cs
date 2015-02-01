@@ -41,7 +41,7 @@ namespace Luma.SimpleEntity.Server
         /// of <see cref="KnownTypeAttribute"/> that permit a runtime method
         /// to return potentially different known types.
         /// </value>
-        internal Dictionary<Type, HashSet<Type>> EntityKnownTypes
+        public Dictionary<Type, HashSet<Type>> EntityKnownTypes
         {
             get
             {
@@ -60,36 +60,12 @@ namespace Luma.SimpleEntity.Server
         {
             get
             {
-                this.EnsureInitialized();
+                EnsureInitialized();
 
-                foreach (Type entityType in this._entityTypes)
+                foreach (Type entityType in _entityTypes)
                 {
                     yield return entityType;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a collection of attributes for <see cref="DomainService"/> Type.
-        /// </summary>
-        /// <remarks>This includes attributes decorated on the Type directly as well as attributes surfaced 
-        /// from implemented interfaces.</remarks>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Public setter by design. This is an extensibility point.")]
-        public AttributeCollection Attributes
-        {
-            get
-            {
-                if (_attributes == null)
-                {
-                    _attributes = new AttributeCollection();
-                }
-
-                return _attributes;
-            }
-            set
-            {
-                CheckInvalidUpdate();
-                _attributes = value;
             }
         }
 
@@ -122,8 +98,7 @@ namespace Luma.SimpleEntity.Server
         /// Returns the root type for the given entity type.
         /// </summary>
         /// <remarks>
-        /// The root type is the least derived entity type in the entity type
-        /// hierarchy that is exposed through a <see cref="DomainService"/>.
+        /// The root type is the least derived entity type in the entity type hierarchy.
         /// </remarks>
         /// <param name="entityType">The entity type whose root is required.</param>
         /// <returns>The type of the root or <c>null</c> if the given <paramref name="entityType"/>
@@ -151,8 +126,7 @@ namespace Luma.SimpleEntity.Server
         /// </summary>
         /// <remarks>
         /// The base type is the closest base type of
-        /// the given entity type that is exposed by the
-        /// <see cref="DomainService"/>. The entity hierarchy
+        /// the given entity type. The entity hierarchy
         /// may contain types that are not exposed, and this
         /// method skips those.
         /// </remarks>
@@ -269,7 +243,7 @@ namespace Luma.SimpleEntity.Server
         {
             if (_isInitialized)
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.DomainServiceDescription_InvalidUpdate"));
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.EntityDescription_InvalidUpdate"));
             }
         }
 
@@ -280,7 +254,7 @@ namespace Luma.SimpleEntity.Server
         {
             if (!_isInitialized && !_isInitializing)
             {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.DomainServiceDescription_Uninitialized"));
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.EntityDescription_Uninitialized"));
             }
         }
 
@@ -374,7 +348,7 @@ namespace Luma.SimpleEntity.Server
                 }
                 else if (typeAttributes[typeof(ExcludeAttribute)] == null)
                 {
-                    var properties = TypeDescriptor.GetProperties(type).Cast<PropertyDescriptor>().Where(c => !c.IsReadOnly);
+                    var properties = TypeDescriptor.GetProperties(type).Cast<PropertyDescriptor>();
 
                     if (properties.Any(c => c.Attributes[typeof(KeyAttribute)] != null) && IsValidEntityType(type))
                     {
@@ -390,7 +364,7 @@ namespace Luma.SimpleEntity.Server
         /// for each.
         /// </summary>
         /// <param name="entityType">type of entity to add</param>
-        private void AddEntityType(Type entityType)
+        public void AddEntityType(Type entityType)
         {
             if (_entityTypes.Contains(entityType))
             {
@@ -415,18 +389,18 @@ namespace Luma.SimpleEntity.Server
             // visit all properties and do any required validation or initialization processing
             foreach (PropertyDescriptor pd in TypeDescriptor.GetProperties(entityType))
             {
-                if (!TypeUtility.IsPredefinedType(pd.PropertyType))
-                {
-                    if (pd.Attributes[typeof(ExcludeAttribute)] == null)
-                    {
-                        Type potentialEntityType = TypeUtility.GetElementType(pd.PropertyType);
-                        if (!IsValidEntityType(potentialEntityType, out errorMessage))
-                        {
-                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                                "Resource.Invalid_Entity_Property", entityType.FullName, pd.Name));
-                        }
-                    }
-                }
+                //if (!TypeUtility.IsPredefinedType(pd.PropertyType))
+                //{
+                //    if (pd.Attributes[typeof(ExcludeAttribute)] == null)
+                //    {
+                //        Type potentialEntityType = TypeUtility.GetElementType(pd.PropertyType);
+                //        if (!IsValidEntityType(potentialEntityType, out errorMessage))
+                //        {
+                //            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
+                //                "Resource.Invalid_Entity_Property", entityType.FullName, pd.Name));
+                //        }
+                //    }
+                //}
             }
 
             // Recursively add any derived entity types specified by [KnownType]
@@ -526,7 +500,7 @@ namespace Luma.SimpleEntity.Server
                     {
                         if (versionMember != null)
                         {
-                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.DomainServiceDescription_MultipleVersionMembers, entityType));
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.EntityDescription_MultipleVersionMembers, entityType));
                         }
                         versionMember = pd;
                     }
@@ -680,7 +654,7 @@ namespace Luma.SimpleEntity.Server
             {
                 if (baseType.Attributes()[typeof(DataContractAttribute)] != null)
                 {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.DomainServiceDescription_DataContractAttributeRequired, entityType.Name, baseType.Name));
+                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.EntityDescription_DataContractAttributeRequired, entityType.Name, baseType.Name));
                 }
                 baseType = baseType.BaseType;
             }
@@ -852,7 +826,7 @@ namespace Luma.SimpleEntity.Server
         /// </summary>
         /// <param name="entityType">The entity type whose derived types are needed.</param>
         /// <returns>The collection of derived types.  It may be empty.</returns>
-        internal IEnumerable<Type> GetEntityDerivedTypes(Type entityType)
+        public IEnumerable<Type> GetEntityDerivedTypes(Type entityType)
         {
             System.Diagnostics.Debug.Assert(entityType != null, "GetEntityDerivedTypes(null) not allowed");
             return this.EntityTypes.Where(et => et != entityType && entityType.IsAssignableFrom(et));
@@ -860,13 +834,13 @@ namespace Luma.SimpleEntity.Server
 
     }
 
-    internal class Resource
+    public class Resource
     {
-        public static string DomainServiceDescription_MultipleVersionMembers = "DomainServiceDescription_MultipleVersionMembers";
+        public static string EntityDescription_MultipleVersionMembers = "EntityDescription_MultipleVersionMembers";
         public static string Entity_Has_No_Key_Properties = "Entity_Has_No_Key_Properties";
-        public static string DomainServiceDescription_DataContractAttributeRequired = "DomainServiceDescription_DataContractAttributeRequired";
+        public static string EntityDescription_DataContractAttributeRequired = "EntityDescription_DataContractAttributeRequired";
         public static string InvalidAssociation_TypesDoNotAlign = "InvalidAssociation_TypesDoNotAlign";
         public static string Entity_Property_Redefined = "Entity_Property_Redefined";
-        public static string DerivedEntityCannotHaveKey = "DerivedEntityCannotHaveKey";
+        public static string Invalid_Entity_Property;
     }
 }

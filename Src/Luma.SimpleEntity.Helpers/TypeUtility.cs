@@ -11,60 +11,45 @@ namespace Luma.SimpleEntity.Helpers
 {
     public static class TypeUtility
     {
-        internal const string SimpleEntityPublicKeyToken = "2e0b7ccb1ae5b4c8";
-        internal static readonly byte[] OpenRiaServicesPublicKeyTokenBytes = PublicKeyTokenToBytes(SimpleEntityPublicKeyToken);
+        private const string SimpleEntityPublicKeyToken = "";
 
         /// <summary>
         /// List of public key tokens used for System assemblies
         /// </summary>
-        private static string[] systemAssemblyPublicKeyTokens =
+        private static readonly string[] SystemAssemblyPublicKeyTokens =
         {
             "b77a5c561934e089", // mscorlib, System, System.ComponentModel.Composition, and System.Core
             "31bf3856ad364e35", // System.ComponentModel.DataAnnotations
             "b03f5f7f11d50a3a", // Microsoft.VisualBasic, Microsoft.CSharp, System.Configuration
-            "7cec85d7bea7798e",  // Silverlight system assemblies
             SimpleEntityPublicKeyToken, // Luma.SimpleEntity.
         };
 
-        /// <summary>
-        /// The list of assemblies that form OpenRiaServices. If OpenRiaServices is extended with
-        /// additional assemblies, or if assemblies are removed, this array must be updated accordingly.
-        /// </summary>
         private static readonly string[] SimpleEntityAssemblyNames =
         {
+            "Luma.SimpleEntity",
             "Luma.SimpleEntity.Client",
-            "Luma.SimpleEntity.Client.Web",
-            "Luma.SimpleEntity.EntityFramework",
-            "Luma.SimpleEntity.EntityFramework.EF4",
-            "Luma.SimpleEntity.Hosting",
-            "Luma.SimpleEntity.Hosting.Endpoint",
-            "Luma.SimpleEntity.Hosting.Local",
-            "Luma.SimpleEntity.Hosting.OData",
-            "Luma.SimpleEntity.LinqToSql",
-            "Luma.SimpleEntity.Server",
-            "Luma.SimpleEntity.Server.UnitTesting",
-            "Luma.SimpleEntity.Tools",
-            "Luma.SimpleEntity.Tools.TextTemplate"
+            "Luma.SimpleEntity.Helpers",
+            "Luma.SimpleEntity.Server"
         };
 
         private static byte[] PublicKeyTokenToBytes(string publicKeyToken)
         {
-            if(publicKeyToken == null || publicKeyToken.Length != 16)
+            if (publicKeyToken == null || publicKeyToken.Length != 16)
                 return new byte[0];
-            else
+
+            var bytes = new byte[8];
+            for (var i = 0; i < bytes.Length; i++)
             {
-                var bytes = new byte[8];
-                for (int i = 0; i < bytes.Length; ++i)
-                    bytes[i] = Convert.ToByte(publicKeyToken.Substring(2 * i, 2), fromBase: 16);
-                return bytes;
+                bytes[i] = Convert.ToByte(publicKeyToken.Substring(2*i, 2), fromBase: 16);
             }
+
+            return bytes;
         }
 
-#if !WIZARD
         // list of "simple" types we will always accept for
         // serialization, inclusion from entities, etc.
         // Primitive types are not here -- test for them via Type.IsPrimitive
-        private static HashSet<Type> predefinedTypes = new HashSet<Type>
+        private static readonly HashSet<Type> PredefinedTypes = new HashSet<Type>
         {
             typeof(string),
             typeof(decimal),
@@ -207,7 +192,7 @@ namespace Luma.SimpleEntity.Helpers
                 return true;
             }
 
-            if (predefinedTypes.Contains(type))
+            if (PredefinedTypes.Contains(type))
             {
                 return true;
             }
@@ -275,7 +260,7 @@ namespace Luma.SimpleEntity.Helpers
 
             return true;
         }
-        
+
         /// <summary>
         /// Determines whether the specified type is one of the supported collection types
         /// with a complex element type.
@@ -447,7 +432,7 @@ namespace Luma.SimpleEntity.Helpers
             }
             return null;
         }
-#endif
+
         /// <summary>
         /// Performs a check against an assembly to determine if it's a known
         /// System assembly.
@@ -472,13 +457,12 @@ namespace Luma.SimpleEntity.Helpers
 
         /// <summary>
         /// Performs a check against an <see cref="AssemblyName"/> to determine if it's a known
-        /// Open Ria assembly.
+        /// Simple Entity assembly.
         /// </summary>
         /// <param name="assemblyName">The assembly name to check.</param>
-        /// <returns><c>true</c> if the assembly is known to be a Open Ria assembly, otherwise <c>false</c>.</returns>
+        /// <returns><c>true</c> if the assembly is known to be a Simple Entity assembly, otherwise <c>false</c>.</returns>
         public static bool IsSimpleEntityAssembly(this AssemblyName assemblyName)
         {
-            // Return true if it is a Open Ria Services assembly
             if (SimpleEntityAssemblyNames.Contains(assemblyName.Name))
             {
                 return true;
@@ -490,7 +474,8 @@ namespace Luma.SimpleEntity.Helpers
             {
                 return false;
             }
-            string publicKeyToken = assemblyName.FullName.Substring(idx + 15);
+            var publicKeyToken = assemblyName.FullName.Substring(idx + 15);
+
             return SimpleEntityPublicKeyToken == publicKeyToken;
         }
 
@@ -519,7 +504,7 @@ namespace Luma.SimpleEntity.Helpers
         /// <returns><c>true</c> if the assembly is known to be a system assembly, otherwise <c>false</c>.</returns>
         public static bool IsSystemAssembly(string assemblyFullName)
         {
-            // Return true if it is a Open Ria Services assembly
+            // Return true if it is a Simple Entity assembly
             var assemblyName = new AssemblyName(assemblyFullName);
             if (SimpleEntityAssemblyNames.Contains(assemblyName.Name))
             {
@@ -534,7 +519,7 @@ namespace Luma.SimpleEntity.Helpers
             }
             string publicKeyToken = assemblyFullName.Substring(idx + 15);
 
-            return systemAssemblyPublicKeyTokens.Any(p => p.Equals(publicKeyToken, StringComparison.OrdinalIgnoreCase));
+            return SystemAssemblyPublicKeyTokens.Any(p => p.Equals(publicKeyToken, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
