@@ -15,13 +15,10 @@ namespace Luma.SimpleEntity
     /// </summary>
     internal class ProjectFileReader : IDisposable
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
-#if NET40
         private ProjectCollection _projectCollection = new ProjectCollection();
-#else
-        Dictionary<string, Project> _loadedProjects = new Dictionary<string, Project>(StringComparer.OrdinalIgnoreCase);
-#endif
+
         /// <summary>
         /// Creates a new instance.
         /// </summary>
@@ -33,7 +30,7 @@ namespace Luma.SimpleEntity
                 throw new ArgumentNullException("logger");
             }
 
-            this._logger = logger;
+            _logger = logger;
         }
 
         /// <summary>
@@ -90,7 +87,7 @@ namespace Luma.SimpleEntity
 
             if (!File.Exists(projectPath))
             {
-                this._logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Project_Does_Not_Exist, projectPath));
+                _logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Project_Does_Not_Exist, projectPath));
                 return null;
             }
 
@@ -98,30 +95,20 @@ namespace Luma.SimpleEntity
 
             try
             {
-#if NET40
-                project = this._projectCollection.LoadedProjects.Where(p => string.Equals(p.FullPath, projectPath, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                project = _projectCollection.LoadedProjects.Where(p => string.Equals(p.FullPath, projectPath, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                
                 if (project == null)
                 {
                     project = this._projectCollection.LoadProject(projectPath);
                 }
-#else
-                project = null;
-                if (!this._loadedProjects.TryGetValue(projectPath, out project))
-                {
-                    Engine engine = new Engine();
-                    project = new Project(engine);
-                    project.Load(projectPath);
-                    this._loadedProjects[projectPath] = project;
-                }
-#endif
             }
             catch (InvalidOperationException ioe)
             {
-                this._logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Failed_To_Open_Project, projectPath, ioe.Message));
+                _logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Failed_To_Open_Project, projectPath, ioe.Message));
             }
             catch (InvalidProjectFileException ipfe)
             {
-                this._logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Failed_To_Open_Project, projectPath, ipfe.Message));
+                _logger.LogWarning(string.Format(CultureInfo.CurrentCulture, Resource.Failed_To_Open_Project, projectPath, ipfe.Message));
             }
 
             return project;
@@ -140,11 +127,7 @@ namespace Luma.SimpleEntity
             Project project = this.LoadProject(projectPath);
             if (project != null)
             {
-#if NET40
                 propertyValue = project.GetPropertyValue(propertyName);
-#else
-                propertyValue = project.GetEvaluatedProperty(propertyName);
-#endif
             }
             return propertyValue;
         }
@@ -168,17 +151,10 @@ namespace Luma.SimpleEntity
                 return projects;
             }
 
-            this._logger.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.Analyzing_Project_References, Path.GetFileName(projectPath)));
+            _logger.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.Analyzing_Project_References, Path.GetFileName(projectPath)));
 
-#if NET40
             projects = project.GetItems("ProjectReference").Select(i => ConvertToFullPath(i.EvaluatedInclude, projectPath));
-#else
-            BuildItemGroup buildItemGroup = project.GetEvaluatedItemsByName("ProjectReference");
-            if (buildItemGroup != null)
-            {
-                projects = buildItemGroup.OfType<BuildItem>().Select(b => ConvertToFullPath(b.FinalItemSpec, projectPath));
-            }
-#endif
+
             // Tell the user what project references we found
             if (projects.Any())
             {
@@ -188,7 +164,7 @@ namespace Luma.SimpleEntity
                     sb.AppendLine();
                     sb.Append("    " + p);
                 }
-                this._logger.LogMessage(sb.ToString());
+                _logger.LogMessage(sb.ToString());
             }
 
             return projects;
@@ -209,17 +185,10 @@ namespace Luma.SimpleEntity
             }
 
             // Tell the user.  This helps us see when we use the cache and when we don't
-            this._logger.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.Analyzing_Project_Files, Path.GetFileName(projectPath)));
+            _logger.LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.Analyzing_Project_Files, Path.GetFileName(projectPath)));
 
-#if NET40
             sources = project.GetItems("Compile").Select(i => ConvertToFullPath(i.EvaluatedInclude, projectPath));
-#else
-            BuildItemGroup buildItemGroup = project.GetEvaluatedItemsByName("Compile");
-            if (buildItemGroup != null)
-            {
-                sources = buildItemGroup.OfType<BuildItem>().Select(b => ConvertToFullPath(b.FinalItemSpec, projectPath));
-            }
-#endif
+
             return sources;
         }
 
@@ -232,12 +201,9 @@ namespace Luma.SimpleEntity
         {
             GC.SuppressFinalize(this);
 
-            if (this._projectCollection != null)
+            if (_projectCollection != null)
             {
-#if NET40
-                this._projectCollection.Dispose();
-#endif
-                this._projectCollection = null;
+                _projectCollection.Dispose();
             }
         }
 #endregion

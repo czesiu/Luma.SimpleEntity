@@ -314,9 +314,6 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
         /// <returns>The equivalent type from the known assemblies, or null if not found</returns>
         private Type FindSharedType(Type type)
         {
-            if (type.FullName == "SQLite.Net.Attributes.IgnoreAttribute")
-                return type;
-
             foreach (var assembly in Assemblies)
             {
                 // Utility autorecovers and logs known common exceptions
