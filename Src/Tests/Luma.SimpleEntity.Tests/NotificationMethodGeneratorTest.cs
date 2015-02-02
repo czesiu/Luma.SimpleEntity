@@ -1,11 +1,7 @@
-﻿using System;
-using System.CodeDom;
-using System.Collections.Generic;
-using Luma.SimpleEntity;
+﻿using System.CodeDom;
 using Luma.SimpleEntity.Generators;
 using Luma.SimpleEntity.Server;
 using Luma.SimpleEntity.Tests.Server.Test.Utilities;
-using Luma.SimpleEntity.Tests.Server;
 using System.Xml;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -49,12 +45,10 @@ namespace Luma.SimpleEntity.Tests
 
         private static XmlReader XmlReader;
 
-        [
-        DeploymentItem("Luma.SimpleEntity.TestsNotificationMethodGeneratorTests.xml"),
-        DeploymentItem("Luma.SimpleEntity.TestsNotificationMethodGeneratorTestCodeSnippets.xml"),
-        DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "|DataDirectory|\\NotificationMethodGeneratorTests.xml", "PartialMethodsSnippetBlockArgs", DataAccessMethod.Sequential),
-        TestMethod()
-        ]
+        [TestMethod]
+        [DeploymentItem("Luma.SimpleEntity.Tests/NotificationMethodGeneratorTests.xml")]
+        [DeploymentItem("Luma.SimpleEntity.Tests/NotificationMethodGeneratorTestCodeSnippets.xml")]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "|DataDirectory|\\NotificationMethodGeneratorTests.xml", "PartialMethodsSnippetBlockArgs", DataAccessMethod.Sequential)]
         public void PartialMethodsSnippetBlockTest()
         {
             PartialMethodsSnippetBlockTest(true);
@@ -103,9 +97,9 @@ namespace Luma.SimpleEntity.Tests
             Assert.AreEqual(snippetstr.Replace("\r\n", "").TrimEnd(), XmlReader.Value.Replace("\n", ""));
         }
 
-        [DeploymentItem("Tests\\Luma.SimpleEntity.Tests\\NotificationMethodGeneratorTests.xml"),
-        DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "|DataDirectory|\\NotificationMethodGeneratorTests.xml", "OnCreatedMethodInvokeExpressionArgs", DataAccessMethod.Sequential),
-        TestMethod]
+        [TestMethod]
+        [DeploymentItem("Tests\\Luma.SimpleEntity.Tests\\NotificationMethodGeneratorTests.xml")]
+        [DataSource("Microsoft.VisualStudio.TestTools.DataSource.XML", "|DataDirectory|\\NotificationMethodGeneratorTests.xml", "OnCreatedMethodInvokeExpressionArgs", DataAccessMethod.Sequential)]
         public void OnCreatedMethodInvokeExpressionTest()
         {
             OnCreatedMethodInvokeExpressionTest(true);
