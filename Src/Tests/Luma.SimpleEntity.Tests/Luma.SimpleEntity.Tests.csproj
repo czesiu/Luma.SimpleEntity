@@ -203,6 +203,10 @@
       <Project>{FE9777B2-ED24-4464-9D35-42A628B00EF7}</Project>
       <Name>ServerClassLib</Name>
     </ProjectReference>
+    <ProjectReference Include="TypeLoadExceptionProject\TypeLoadExceptionProject.csproj">
+      <Project>{2265a098-f256-418d-9d11-9fd6561e8d42}</Project>
+      <Name>TypeLoadExceptionProject</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

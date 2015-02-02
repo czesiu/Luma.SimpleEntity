@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using Luma.SimpleEntity.Cache;
 using Luma.SimpleEntity.TestHelpers;
-using Luma.SimpleEntity.Tools;
 using Microsoft.Build.BuildEngine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ConsoleLogger = Luma.SimpleEntity.Tests.Utilities.ConsoleLogger;

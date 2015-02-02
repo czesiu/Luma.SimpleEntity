@@ -530,26 +530,23 @@ namespace Luma.SimpleEntity.Tests
 
         [Description("ClientCodeGenerationDispatcher logs an warning and survives a TypeLoadException creating MEF")]
         [TestMethod]
-        [DeploymentItem(@"Test\Desktop\TypeLoadExceptionProject\bin\debug\TypeLoadExceptionProject.dll")]
+        [DeploymentItem(@"Tests\Luma.SimpleEntity.Tests\TypeLoadExceptionProject\Bin\Debug\TypeLoadExceptionProject.dll")]
         public void ClientCodeGenerationDispatcher_Error_TypeLoadException()
         {
-            ConsoleLogger logger = new ConsoleLogger();
-            ClientCodeGenerationOptions options = new ClientCodeGenerationOptions()
-            {
-                Language = "C#",
-            };
+            var logger = new ConsoleLogger();
+            var options = new ClientCodeGenerationOptions { Language = "C#" };
 
-            ICodeGenerationHost host = TestHelper.CreateMockCodeGenerationHost(logger, /*sharedTypeService*/ null);
+            var host = TestHelper.CreateMockCodeGenerationHost(logger, /*sharedTypeService*/ null);
 
             // Create a new dispatcher and call an internal extensibility point to add ourselves
             // into the MEF composition container
-            using (ClientCodeGenerationDispatcher dispatcher = new ClientCodeGenerationDispatcher())
+            using (var dispatcher = new ClientCodeGenerationDispatcher())
             {
                 // We want to include into the MEF container an assembly that will throw TypeLoadException
                 // when MEF tries to analyze it.  This is to test our own recovery, which should consist
                 // of logging an error making a default container containing only Tools.
-                string unitTestAssemblyLocation = Assembly.GetExecutingAssembly().Location;
-                string typeLoadExceptionProjectLocation = Path.Combine(Path.GetDirectoryName(unitTestAssemblyLocation), "TypeLoadExceptionProject.dll");
+                var unitTestAssemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var typeLoadExceptionProjectLocation = Path.Combine(Path.GetDirectoryName(unitTestAssemblyLocation), "TypeLoadExceptionProject.dll");
 
                 Assert.IsTrue(File.Exists(typeLoadExceptionProjectLocation), "Expected TypeLoadExceptionProject.dll to coreside with this assembly in test folder");
 
@@ -566,7 +563,7 @@ namespace Luma.SimpleEntity.Tests
                 }
                 Assert.IsNotNull(expectedException, "We did not generate the type load exception we expected");
 
-                string[] compositionAssemblies = new string[] { unitTestAssemblyLocation, typeLoadExceptionProjectLocation };
+                var compositionAssemblies = new[] { unitTestAssemblyLocation, typeLoadExceptionProjectLocation };
 
                 IClientCodeGenerator generator = dispatcher.FindCodeGenerator(host, options, compositionAssemblies, /*generatorName*/ null);
                 Assert.IsNotNull(generator, "the dispatcher did not pick default generator");
