@@ -94,7 +94,7 @@ namespace Luma.SimpleEntity.Tests
                 }
                 snippetstr += snippet.Text;
             }
-            Assert.AreEqual(snippetstr.Replace("\r\n", "").TrimEnd(), XmlReader.Value.Replace("\n", ""));
+            Assert.AreEqual(snippetstr.Replace("\r\n", "").TrimEnd(), XmlReader.Value.Replace("\r\n", ""));
         }
 
         [TestMethod]

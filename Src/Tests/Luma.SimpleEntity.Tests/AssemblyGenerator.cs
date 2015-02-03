@@ -477,7 +477,7 @@ namespace Luma.SimpleEntity.Tests
             }
 
             List<ITaskItem> references = new List<ITaskItem>();
-            foreach (string s in this.ReferenceAssemblies)
+            foreach (string s in ReferenceAssemblies)
                 references.Add(new TaskItem(s));
 
             var buildEngine = MockBuildEngine;
@@ -511,11 +511,11 @@ namespace Luma.SimpleEntity.Tests
         internal string CompileVisualBasicSource()
         {
             var sources = new List<ITaskItem>();
-            sources.Add(new TaskItem(this.GeneratedCodeFile));
+            sources.Add(new TaskItem(GeneratedCodeFile));
 
             // If client has added extra user code into the
             // compile request, add it in now
-            string userCodeFile = this.UserCodeFile;
+            string userCodeFile = UserCodeFile;
             if (!string.IsNullOrEmpty(userCodeFile))
             {
                 sources.Add(new TaskItem(userCodeFile));
@@ -523,25 +523,25 @@ namespace Luma.SimpleEntity.Tests
 
             // Transform references into a list of ITaskItems.
             // Here, we skip over mscorlib explicitly because this is already included as a project reference.
-            List<ITaskItem> references =
-                this.ReferenceAssemblies
+            var references = ReferenceAssemblies
                     .Where(reference => !reference.EndsWith("mscorlib.dll", StringComparison.Ordinal))
                     .Select(reference => new TaskItem(reference) as ITaskItem)
                     .ToList();
 
-            var vbc = new Vbc();
-            MockBuildEngine buildEngine = MockBuildEngine;
-            vbc.BuildEngine = buildEngine;  // needed before task can log
+            var buildEngine = MockBuildEngine;
+            var vbc = new Vbc
+            {
+                BuildEngine = buildEngine,
+                NoStandardLib = true,
+                NoConfig = true,
+                TargetType = "library",
+                Sources = sources.ToArray(),
+                References = references.ToArray(),
+                RootNamespace = "TestRootNS",
+                OutputAssembly = new TaskItem(OutputAssemblyName)
+            };
 
-            vbc.NoStandardLib = true;   // don't include std lib stuff -- we're feeding it pcl
-            vbc.NoConfig = true;        // don't load the vbc.rsp file to get references
-            vbc.TargetType = "library";
-            vbc.Sources = sources.ToArray();
-            vbc.References = references.ToArray();
-            //vbc.SdkPath = CompilerHelper.GetSdkReferenceAssembliesPath();
-            vbc.RootNamespace = "TestRootNS";
-
-            vbc.OutputAssembly = new TaskItem(this.OutputAssemblyName);
+            //vbc.SdkPath = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\";
 
             bool result = false;
             try

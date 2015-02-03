@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
+using Luma.SimpleEntity.TestHelpers;
 using Luma.SimpleEntity.Tests.Server.Test.Utilities;
 using Luma.SimpleEntity.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,14 +38,17 @@ namespace Luma.SimpleEntity.Tests
         [Description("[UIHint] and odd number of control parameters should fail gracefully")]
         public void CodeGen_Attribute_UIHint_ControlParameters_Fail_Odd_Count()
         {
-            ConsoleLogger logger = new ConsoleLogger();
+            UnitTestHelper.EnsureEnglish();
+            var logger = new ConsoleLogger();
             string generatedCode = TestHelper.GenerateCode("C#", typeof(Mock_CG_Attr_Entity_UIHint_ControlParameters_Odd), logger);
-            TestHelper.AssertContainsErrors(logger, "xxx");
-            Assert.AreEqual(string.Empty, generatedCode);
+            TestHelper.AssertContainsWarnings(logger, string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_ThrewException_CodeTypeMember,
+                string.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_Attribute_ThrewException, typeof(UIHintAttribute), "ControlParameters"),
+                "StringProperty", typeof(Mock_CG_Attr_Entity_UIHint_ControlParameters_Odd).Name, "The number of control parameters must be even."));
+            TestHelper.AssertGeneratedCodeContains(generatedCode, "// - An exception occurred generating the 'ControlParameters' property on attribute of type 'System.ComponentModel.DataAnnotations.UIHintAttribute'.");
         }
     }
 
-    public partial class Mock_CG_Attr_Entity_UIHint
+    public class Mock_CG_Attr_Entity_UIHint
     {
         [Key]
         public int KeyField { get; set; }
@@ -52,7 +57,7 @@ namespace Luma.SimpleEntity.Tests
         public string StringProperty { get; set; }
     }
 
-    public partial class Mock_CG_Attr_Entity_UIHint_ControlParameters
+    public class Mock_CG_Attr_Entity_UIHint_ControlParameters
     {
         [Key]
         public int KeyField { get; set; }
@@ -61,7 +66,7 @@ namespace Luma.SimpleEntity.Tests
         public string StringProperty { get; set; }
     }
 
-    public partial class Mock_CG_Attr_Entity_UIHint_ControlParameters_Odd
+    public class Mock_CG_Attr_Entity_UIHint_ControlParameters_Odd
     {
         [Key]
         public int KeyField { get; set; }

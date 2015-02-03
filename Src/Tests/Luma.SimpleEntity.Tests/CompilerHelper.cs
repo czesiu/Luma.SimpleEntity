@@ -119,18 +119,18 @@ namespace Luma.SimpleEntity.Tests
         /// <returns></returns>
         public static List<string> GetClientAssemblies(string relativeTestDir)
         {
-            List<string> assemblies = new List<string>();
+            var assemblies = new List<string>();
 
             string projectPath, outputPath;   // output path for current project, used to infer output path of test project
             TestHelper.GetProjectPaths(relativeTestDir, out projectPath, out outputPath);
 
             // Our current project's folder
-            string projectDir = Path.GetDirectoryName(projectPath);
+            var projectDir = Path.GetDirectoryName(projectPath);
 
             // Folder of project we want to build
-            string testProjectDir = Path.GetFullPath(Path.Combine(projectDir, @"..\..\Luma.SimpleEntity.Client"));
+            var testProjectDir = Path.GetFullPath(Path.Combine(projectDir, @"..\..\Luma.SimpleEntity.Client"));
 
-            string testProjectFile = Path.Combine(testProjectDir, @"Luma.SimpleEntity.Client.csproj");
+            var testProjectFile = Path.Combine(testProjectDir, @"Luma.SimpleEntity.Client.csproj");
             Assert.IsTrue(File.Exists(testProjectFile), "This test could not find its required project at " + testProjectFile);
 
             // Retrieve all the assembly references from the test project (follows project-to-project references too)
@@ -144,7 +144,13 @@ namespace Luma.SimpleEntity.Tests
 
             var frameworkDirectory = CodeGenHelper.GetRuntimeDirectory();
             var frameworkAssemblies = Directory.EnumerateFiles(frameworkDirectory, "*.dll");
-            assemblies.AddRange(frameworkAssemblies);
+            foreach (var frameworkAssembly in frameworkAssemblies)
+            {
+                if (!assemblies.Contains(frameworkAssembly))
+                {
+                    assemblies.Add(frameworkAssembly);
+                }
+            }
 
             return assemblies;
         }

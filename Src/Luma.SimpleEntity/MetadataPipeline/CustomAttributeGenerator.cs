@@ -35,7 +35,7 @@ namespace Luma.SimpleEntity.MetadataPipeline
         /// <summary>
         /// Known attribute builder instances.
         /// </summary>
-        private static Dictionary<Type, ICustomAttributeBuilder> _knownBuilders = new Dictionary<Type, ICustomAttributeBuilder>();
+        private static readonly Dictionary<Type, ICustomAttributeBuilder> _knownBuilders = new Dictionary<Type, ICustomAttributeBuilder>();
 
         /// <summary>
         /// Gets the dictionary mapping custom attribute types to their known custom attribute builder types
@@ -46,7 +46,6 @@ namespace Luma.SimpleEntity.MetadataPipeline
             {
                 if (_knownBuilderTypes == null)
                 {
-                    // TODO: (ron) this deserves an extensibility mechanism.  For now, hard coded allow list
                     _knownBuilderTypes = new Dictionary<Type, Type>();
                     _knownBuilderTypes[typeof(CustomValidationAttribute)] = typeof(CustomValidationCustomAttributeBuilder);
                     _knownBuilderTypes[typeof(DataMemberAttribute)] = typeof(DataMemberAttributeBuilder);
@@ -172,8 +171,8 @@ namespace Luma.SimpleEntity.MetadataPipeline
         /// <returns>The collection of generated attribute declarations corresponding to <paramref name="attributes"/></returns>
         private static IEnumerable<CodeAttributeDeclaration> GenerateCustomAttributes(CodeDomClientCodeGenerator proxyGenerator, CodeTypeDeclaration referencingType, Func<AttributeBuilderException, string> getLogWarningMessage, IEnumerable<Attribute> attributes, CodeCommentStatementCollection comments, string customCommentHeader, bool forcePropagation)
         {
-            bool emittedErrorCommentHeader = false;
-            List<CodeAttributeDeclaration> result = new List<CodeAttributeDeclaration>(attributes.Count());
+            var emittedErrorCommentHeader = false;
+            var result = new List<CodeAttributeDeclaration>(attributes.Count());
 
             // Enumerate over attributes sorted by name.  Here, we sort by name to ensure that our
             // generated baselines (including possible error comments!) are ordered consistently.

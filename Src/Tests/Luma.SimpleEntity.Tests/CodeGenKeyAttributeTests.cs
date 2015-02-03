@@ -15,13 +15,13 @@ namespace Luma.SimpleEntity.Tests
     public class CodeGenKeyAttributeTests
     {
         [TestMethod]
-        [Description("Entity missing [Key] property fails")]
-        public void CodeGen_Attribute_KeyAttribute_Fail_Missing()
+        [Description("Entity missing [Key] should pass")]
+        public void CodeGen_Attribute_KeyAttribute_Missing_Pass()
         {
-            ConsoleLogger logger = new ConsoleLogger();
+            var logger = new ConsoleLogger();
             string generatedCode = TestHelper.GenerateCode("C#", typeof(Mock_CG_Attr_Entity_Missing_Key), logger);
-            Assert.IsTrue(string.IsNullOrEmpty(generatedCode));
-            TestHelper.AssertContainsErrors(logger, string.Format(Luma.SimpleEntity.Server.Resource.Entity_Has_No_Key_Properties, typeof(Mock_CG_Attr_Entity_Missing_Key).Name, typeof(Mock_CG_Attr_Entity_Missing_Key).Name));
+            Assert.IsTrue(!string.IsNullOrEmpty(generatedCode));
+            TestHelper.AssertCodeGenSuccess(generatedCode, logger);
         }
 
         [TestMethod]
@@ -42,7 +42,7 @@ namespace Luma.SimpleEntity.Tests
         }
     }
 
-    public partial class Mock_CG_Attr_Entity_Missing_Key
+    public class Mock_CG_Attr_Entity_Missing_Key
     {
         public string StringProperty { get; set; }
     }

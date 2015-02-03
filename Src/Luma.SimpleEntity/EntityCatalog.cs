@@ -157,8 +157,15 @@ namespace Luma.SimpleEntity
             var entityDescription = new EntityDescription();
 
             foreach (var entityType in entityTypes)
-            {
-                entityDescription.AddEntityType(entityType);
+            { 
+                try
+                {
+                    entityDescription.AddEntityType(entityType);
+                }
+                catch (Exception e)
+                {
+                    LogWarning(e.Message);
+                }
             }
 
             entityDescription.Initialize();

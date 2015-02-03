@@ -1,4 +1,7 @@
-﻿namespace Luma.Client
+﻿using System.IO;
+using System.Text;
+
+namespace Luma.Client
 {
     public abstract class Entity
     {
@@ -14,7 +17,7 @@
 
         protected void ValidateProperty(string propertyName, object newValue)
         {
-            
+
         }
     }
 }

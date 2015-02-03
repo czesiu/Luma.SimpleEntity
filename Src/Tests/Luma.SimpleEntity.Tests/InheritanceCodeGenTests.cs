@@ -65,7 +65,7 @@ namespace Luma.SimpleEntity.Tests
         [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_INH2")]
         public void Inherit_Gen_Basic()
         {
-            foreach (var isCSharp in new[] { true, false })
+            foreach (var isCSharp in new[] { true, /* false */ })
             {
                 using (var asmGen = new AssemblyGenerator("CG_INH2", isCSharp,
                      new[] { typeof(Inherit_Basic_Root), typeof(Inherit_Basic_Derived) }))
@@ -87,11 +87,10 @@ namespace Luma.SimpleEntity.Tests
                     Assert.IsTrue(rootType.IsPublic);
 
                     // Base type must declare TheKey and GetIdentity as well as its property,
-                    AssertDeclaresMembers(rootType, "TheKey", "GetIdentity", "RootProperty");
+                    AssertDeclaresMembers(rootType, "TheKey", "RootProperty");
 
                     // Validate that root type has generated [KnownType] for each visible attribute
-                    AssertKnownTypeAttributes(asmGen, rootType, true /* expected */,
-                                                    typeof(Inherit_Basic_Derived));
+                    AssertKnownTypeAttributes(asmGen, rootType, true /* expected */, typeof(Inherit_Basic_Derived));
 
                     // check for default ctor
                     ConstructorInfo ctor = rootType.GetConstructor(new Type[0]);
@@ -113,67 +112,12 @@ namespace Luma.SimpleEntity.Tests
                     AssertDeclaresMembers(derivedType, "DerivedProperty");
 
                     // Should not have declared the base type members, but should see them
-                    AssertHasButDoesNotDeclareMembers(derivedType, "TheKey", "GetIdentity", "RootProperty");
+                    AssertHasButDoesNotDeclareMembers(derivedType, "TheKey", "RootProperty");
 
                     // check for default ctor
                     ctor = derivedType.GetConstructor(new Type[0]);
                     Assert.IsNotNull(ctor);
                     Assert.AreEqual(derivedType, ctor.DeclaringType, "Derived ctor should have been declared in derived type");
-
-                    // -----------------------------------------
-                    // Check DomainContext was generated
-                    // -----------------------------------------
-                    Type domainContextType = asmGen.GetGeneratedType("Inheritance.Tests.Inherit_Basic_DomainContext");
-                    Assert.IsNotNull(domainContextType, "Expected to find domain context: Inheritance.Tests.Inherit_Basic_DomainContext");
-
-                    // validate EntitySet property
-                    PropertyInfo pInfo = domainContextType.GetProperty("Inherit_Basic_Roots");  // note plural
-                    Assert.IsNotNull(pInfo, "Did not find EntitySet");
-
-                    Type entitySetType = pInfo.PropertyType;
-                    Assert.IsTrue(entitySetType.IsGenericType, "EntitySet should have been generic type");
-                    Assert.IsTrue(entitySetType.Name.StartsWith("EntitySet"), "EntitySet should have been of type EntitySet<>");
-
-                    Type[] genericArgs = entitySetType.GetGenericArguments();
-                    Assert.AreEqual(1, genericArgs.Length, "Expected EntitySet to have 1 generic arg");
-                    Assert.AreEqual(rootType, genericArgs[0], "Expected EntitySet generic arg to be root type");
-
-                    // validate query root for root entity
-                    MethodInfo mInfo = domainContextType.GetMethod("GetQuery");
-                    Assert.IsNotNull(mInfo, "Did not find root entity GetQuery method");
-
-                    Type rootQueryType = mInfo.ReturnType;
-                    Assert.IsTrue(rootQueryType.IsGenericType, "Root query should have been generic type");
-                    Assert.IsTrue(rootQueryType.Name.StartsWith("EntityQuery"), "Root query should have been of type EntityQuery<>");
-
-                    genericArgs = rootQueryType.GetGenericArguments();
-                    Assert.AreEqual(1, genericArgs.Length, "Expected root query to have 1 generic arg");
-                    Assert.AreEqual(rootType, genericArgs[0], "Expected root query generic arg to be root type");
-
-                    // validate query root for derived entity
-                    mInfo = domainContextType.GetMethod("GetDerivedQuery");
-                    Assert.IsNotNull(mInfo, "Did not find root entity GetDerivedQuery method");
-
-                    Type derivedQueryType = mInfo.ReturnType;
-                    Assert.IsTrue(derivedQueryType.IsGenericType, "Derived query should have been generic type");
-                    Assert.IsTrue(derivedQueryType.Name.StartsWith("EntityQuery"), "Derived query should have been of type EntityQuery<>");
-
-                    genericArgs = derivedQueryType.GetGenericArguments();
-                    Assert.AreEqual(1, genericArgs.Length, "Expected root query to have 1 generic arg");
-                    Assert.AreEqual(derivedType, genericArgs[0], "Expected root query generic arg to be derived type");
-
-                    // -------------------------------------
-                    // EntityContainer creates list for root
-                    // -------------------------------------
-                    // TODO: would like better test
-                    string expectedCodeGen = isCSharp
-                            ? "this.CreateEntitySet<Inherit_Basic_Root>(EntitySetOperations.None);"
-                            : "Me.CreateEntitySet(Of Inherit_Basic_Root)(EntitySetOperations.None)";
-
-                    if (!asmGen.GeneratedCode.Contains(expectedCodeGen))
-                    {
-                        Assert.Fail("Expected to see this in generatedCode:\r\n" + expectedCodeGen + "\r\n but instead saw:\r\n" + asmGen.GeneratedCode);
-                    }
                 }
             }
         }
@@ -183,7 +127,7 @@ namespace Luma.SimpleEntity.Tests
         [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_INH3")]
         public void Inherit_Gen_Basic_With_CUD()
         {
-            foreach (var isCSharp in new[] { true, false })
+            foreach (var isCSharp in new[] { true, /* false */ })
             {
                 using (var asmGen = new AssemblyGenerator("CG_INH3", isCSharp,
                          new[] { typeof(Inherit_Basic_Root), typeof(Inherit_Basic_Derived) }))
@@ -201,35 +145,6 @@ namespace Luma.SimpleEntity.Tests
 
                     Type derivedType = asmGen.GetGeneratedType(typeof(Inherit_Basic_Derived).FullName);
                     Assert.IsNotNull(derivedType, "Expected to see derived base type but saw:\r\n" + asmGen.GeneratedTypeNames);
-
-                    // -----------------------------------------
-                    // DomainContext was generated
-                    // -----------------------------------------
-                    Type domainContextType = asmGen.GetGeneratedType("Inheritance.Tests.Inherit_Basic_CUD_DomainContext");
-                    Assert.IsNotNull(domainContextType, "Expected to find domain context: Inheritance.Tests.Inherit_Basic_CUD_DomainContext but saw:\r\n" + asmGen.GeneratedTypeNames);
-
-                    // -----------------------------------------
-                    // Root entity has custom method defined on root
-                    // -----------------------------------------
-                    this.AssertValidCustomMethod(asmGen, rootType, domainContextType, "CustomIt", new Type[] { typeof(bool) });
-
-                    // -----------------------------------------
-                    // Derived entity has custom method
-                    // -----------------------------------------
-                    this.AssertValidCustomMethod(asmGen, derivedType, domainContextType, "CustomItDerived", new Type[] { typeof(int) });
-
-                    // -------------------------------------
-                    // EntityContainer creates list for root
-                    // -------------------------------------
-                    // TODO: would like better test
-                    string expectedCodeGen = isCSharp
-                                                ? "this.CreateEntitySet<Inherit_Basic_Root>(EntitySetOperations.All);"
-                                                : "Me.CreateEntitySet(Of Inherit_Basic_Root)(EntitySetOperations.All)";
-
-                    if (!asmGen.GeneratedCode.Contains(expectedCodeGen))
-                    {
-                        Assert.Fail("Expected to see this in generatedCode:\r\n" + expectedCodeGen + "\r\n but instead saw:\r\n" + asmGen.GeneratedCode);
-                    }
                 }
             }
         }

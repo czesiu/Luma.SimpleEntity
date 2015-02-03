@@ -181,7 +181,7 @@ namespace Luma.SimpleEntity.Tests
         public static string NormalizedFolder(string folder)
         {
             int len = folder.Length;
-            return (len > 0 && folder[len-1] == Path.DirectorySeparatorChar) ? folder.Substring(0, folder.Length - 1) : folder;
+            return (len > 0 && folder[len - 1] == Path.DirectorySeparatorChar) ? folder.Substring(0, folder.Length - 1) : folder;
         }
 
         public static string GetOutputTestDataDir(string subDir)
@@ -614,21 +614,28 @@ namespace Luma.SimpleEntity.Tests
 
         internal static void GenerateCodeAssertFailure(string language, IEnumerable<Type> entityTypes, params string[] errors)
         {
-            ConsoleLogger logger = new ConsoleLogger();
-            ClientCodeGenerationOptions options = CreateMockCodeGenContext(language, false);
-            ICodeGenerationHost host = CreateMockCodeGenerationHost(logger, null);
-            string generatedCode = GenerateCode(host, options, entityTypes );
+            var logger = new ConsoleLogger();
+            var options = CreateMockCodeGenContext(language, false);
+            var host = CreateMockCodeGenerationHost(logger, null);
+            var generatedCode = GenerateCode(host, options, entityTypes);
             TestHelper.AssertCodeGenFailure(generatedCode, logger, errors);
         }
 
         internal static string GenerateCodeAssertWarnings(string language, Type entityType, params string[] warnings)
         {
-            ConsoleLogger logger = new ConsoleLogger();
-            ClientCodeGenerationOptions options = CreateMockCodeGenContext(language, false);
-            ICodeGenerationHost host = CreateMockCodeGenerationHost(logger, null);
-            string generatedCode = GenerateCode(host, options, new Type[] { entityType });
-            TestHelper.AssertContainsWarnings(logger, warnings);
+            return GenerateCodeAssertWarnings(language, new[] { entityType }, warnings);
+        }
+
+        internal static string GenerateCodeAssertWarnings(string language, IEnumerable<Type> entityTypes, params string[] warnings)
+        {
+            var logger = new ConsoleLogger();
+            var options = CreateMockCodeGenContext(language, false);
+            var host = CreateMockCodeGenerationHost(logger, null);
+            var generatedCode = GenerateCode(host, options, entityTypes);
+
+            AssertContainsWarnings(logger, warnings);
             Assert.IsFalse(string.IsNullOrEmpty(generatedCode), "Expected code to generate with warnings");
+
             return generatedCode;
         }
 
@@ -644,7 +651,7 @@ namespace Luma.SimpleEntity.Tests
             ClientCodeGenerationOptions options = CreateMockCodeGenContext(language, useFullNames);
             ICodeGenerationHost host = CreateMockCodeGenerationHost(logger, typeService);
             string generatedCode = GenerateCode(host, options, entityTypes);
-            TestHelper.AssertCodeGenSuccess(generatedCode,  ((MockCodeGenerationHost)host).LoggingService as ConsoleLogger);
+            TestHelper.AssertCodeGenSuccess(generatedCode, ((MockCodeGenerationHost)host).LoggingService as ConsoleLogger);
             return generatedCode;
         }
 

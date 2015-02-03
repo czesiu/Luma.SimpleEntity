@@ -6,11 +6,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
-using Luma.SimpleEntity.MetadataPipeline;
-using Luma.SimpleEntity.Server;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using DescriptionAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute;
-using ComponentModelDescriptionAttribute = System.ComponentModel.DescriptionAttribute;
 
 namespace Luma.SimpleEntity.Tests
 {
@@ -28,7 +25,7 @@ namespace Luma.SimpleEntity.Tests
         [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM_CS")]
         public void Enum_Gen_Basic_CSharp()
         {
-            using (AssemblyGenerator asmGen = new AssemblyGenerator("CG_ENUM_CS", /*isCSharp*/ true, /*useFullTypeNames*/ false, new Type[] { typeof(Enum_Basic_Entity) }))
+            using(var asmGen = new AssemblyGenerator("CG_ENUM_CS", /*isCSharp*/ true, /*useFullTypeNames*/ false, new[] {typeof (Enum_Basic_Entity)}))
             {
                 VerifyEnumGenBasic(asmGen);
             }
@@ -39,40 +36,40 @@ namespace Luma.SimpleEntity.Tests
         [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM_CS_FULL")]
         public void Enum_Gen_Basic_CSharp_Full()
         {
-            using (AssemblyGenerator asmGen = new AssemblyGenerator("CG_ENUM_CS_FULL", /*isCSharp*/ true, /*useFullTypeNames*/ true, new Type[] { typeof(Enum_Basic_Entity) }))
+            using (var asmGen = new AssemblyGenerator("CG_ENUM_CS_FULL", /*isCSharp*/ true, /*useFullTypeNames*/ true, new Type[] { typeof(Enum_Basic_Entity) }))
             {
                 VerifyEnumGenBasic(asmGen);
             }
         }
 
-        [TestMethod]
-        [Description("Entity property returning enum type generates enum in VB")]
-        [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM_VB")]
-        public void Enum_Gen_Basic_VB()
-        {
-            using (AssemblyGenerator asmGen = new AssemblyGenerator("CG_ENUM_VB", /*isCSharp*/ false, /*useFullTypeNames*/ false, new Type[] { typeof(Enum_Basic_Entity) }))
-            {
-                VerifyEnumGenBasic(asmGen);
-            }
-        }
+        //[TestMethod]
+        //[Description("Entity property returning enum type generates enum in VB")]
+        //[DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM_VB")]
+        //public void Enum_Gen_Basic_VB()
+        //{
+        //    using (var asmGen = new AssemblyGenerator("CG_ENUM_VB", /*isCSharp*/ false, /*useFullTypeNames*/ false, new[] { typeof(Enum_Basic_Entity) }))
+        //    {
+        //        VerifyEnumGenBasic(asmGen);
+        //    }
+        //}
 
-        [TestMethod]
-        [Description("Entity property returning enum type generates enum in VB with full type names")]
-        [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM_VB_FULL")]
-        public void Enum_Gen_Basic_VB_Full()
-        {
-            using (AssemblyGenerator asmGen = new AssemblyGenerator("CG_ENUM_VB_FULL", /*isCSharp*/ false, /*useFullTypeNames*/ true, new Type[] { typeof(Enum_Basic_Entity) }))
-            {
-                VerifyEnumGenBasic(asmGen);
-            }
-        }
+        //[TestMethod]
+        //[Description("Entity property returning enum type generates enum in VB with full type names")]
+        //[DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM_VB_FULL")]
+        //public void Enum_Gen_Basic_VB_Full()
+        //{
+        //    using (var asmGen = new AssemblyGenerator("CG_ENUM_VB_FULL", /*isCSharp*/ false, /*useFullTypeNames*/ true, new[] { typeof(Enum_Basic_Entity) }))
+        //    {
+        //        VerifyEnumGenBasic(asmGen);
+        //    }
+        //}
 
         [TestMethod]
         [Description("If an entity has DataContract applied only enum properties with DataMember are generated")]
         [DeploymentItem(@"Luma.SimpleEntity.Tests\ProjectPath.txt", "CG_ENUM")]
         public void Enum_Gen_DataContract()
         {
-            using (AssemblyGenerator asmGen = new AssemblyGenerator("CG_ENUM", true, false, new Type[] { typeof(Enum_DataContract_Entity) }))
+            using (var asmGen = new AssemblyGenerator("CG_ENUM", true, false, new[] { typeof(Enum_DataContract_Entity) }))
             {
                 Type clientEntityType = asmGen.GetGeneratedType(typeof(Enum_DataContract_Entity).FullName);
 
@@ -153,82 +150,9 @@ namespace Luma.SimpleEntity.Tests
             Assert.IsNull(clientEnumType, "The PrivateEnum type should not have been generated because it was not public.");
 
             // Shared System enum was used but not propagated
-            propertyInfo = clientEntityType.GetProperty("FileAttrProp");
-            Assert.IsNotNull(propertyInfo, "The property FileAttrProp should have been generated because the enum was shared.");
-            Assert.AreEqual(typeof(FileAttributes).FullName, propertyInfo.PropertyType.FullName, "Expected FileAttrProp to use FileAttributes");
-
-
-            // -----------------------------------------
-            // Check DomainContext was generated with property custom method and invoke method
-            // -----------------------------------------
-            Type domainContextType = asmGen.GetGeneratedType("EnumGen.Tests.Enum_Basic_DomainContext");
-            Assert.IsNotNull(domainContextType, "Expected to find domain context: EnumGen.Tests.Enum_Basic_DomainContext:\r\n" + asmGen.GeneratedTypeNames);
-
-            // -------------------
-            // Query method
-            // -------------------
-
-            // query method with enum arg should have generated that enum type
-            clientEnumType = this.ValidateGeneratedEnum(typeof(QueryEnumArg), asmGen);
-
-            // Query method should have been generated
-            MethodInfo methodInfo = domainContextType.GetMethod("GetEntityWithEnumQuery");
-            Assert.IsNotNull(methodInfo, "Expected to find query method called GetEntityWithEnumQuery");
-            ParameterInfo[] parameters = methodInfo.GetParameters();
-            Assert.AreEqual(1, parameters.Length, "Expected query method to have 1 parameter");
-            this.ValidateGeneratedEnumReference(clientEnumType, parameters[0].ParameterType, /* expectNullable */ false);
-
-            // Nullable form of query
-            methodInfo = domainContextType.GetMethod("GetEntityWithNullableEnumQuery");
-            Assert.IsNotNull(methodInfo, "Expected to find query method called GetEntityWithNullableEnumQuery");
-            parameters = methodInfo.GetParameters();
-            Assert.AreEqual(1, parameters.Length, "Expected query method to have 1 parameter");
-            this.ValidateGeneratedEnumReference(clientEnumType, parameters[0].ParameterType, /* expectNullable */ true);
-
-            // -------------------
-            // Named update method
-            // -------------------
-
-            // Named update method with enum arg should have generated that enum type
-            clientEnumType = this.ValidateGeneratedEnum(typeof(NamedEnumArg), asmGen);
-
-            // Named update method should have been generated
-            methodInfo = domainContextType.GetMethod("EnumNamedUpate");
-            Assert.IsNotNull(methodInfo, "Expected to find named update method called EnumNamedUpdate");
-            parameters = methodInfo.GetParameters();
-            Assert.AreEqual(2, parameters.Length, "Expected named update method to have 2 parameters");
-            this.ValidateGeneratedEnumReference(clientEnumType, parameters[1].ParameterType, /* expectNullable */ false);
-
-            // Nullable form of named update method should have been generated
-            methodInfo = domainContextType.GetMethod("EnumNamedUpateNullable");
-            Assert.IsNotNull(methodInfo, "Expected to find named update method called EnumNamedUpdateNullable");
-            parameters = methodInfo.GetParameters();
-            Assert.AreEqual(2, parameters.Length, "Expected named update method to have 2 parameters");
-            this.ValidateGeneratedEnumReference(clientEnumType, parameters[1].ParameterType, /* expectNullable */ true);
-
-            // -------------------
-            // Invoke method
-            // -------------------
-
-            // Should have generated the enum for the return and for its parameters
-            Type invokeEnumRetType = this.ValidateGeneratedEnum(typeof(InvokeEnumRet), asmGen);
-            Type invokeEnumArgType = this.ValidateGeneratedEnum(typeof(InvokeEnumArg), asmGen);
-
-            // Should have generated our invoke signature
-            methodInfo = domainContextType.GetMethod("EnumServiceOp", new Type[] { invokeEnumArgType });
-            Assert.IsNotNull(methodInfo, "Expected service op for EnumServiceOp");
-            Type returnType = methodInfo.ReturnType;
-            Assert.IsTrue(returnType.IsGenericType, "Expected EnumServiceOp return type to be generic");
-            Type genericType = returnType.GetGenericArguments()[0];
-            Assert.AreEqual(invokeEnumRetType, genericType, "Expected EnumServiceOp<T> generic return type to be enum type");
-
-            // Should have generated our nullable enum invoke signature
-            methodInfo = domainContextType.GetMethod("EnumServiceOpNullable", new Type[] { invokeEnumArgType });
-            Assert.IsNotNull(methodInfo, "Expected service op for EnumServiceOpNullable");
-            returnType = methodInfo.ReturnType;
-            Assert.IsTrue(returnType.IsGenericType, "Expected EnumServiceOp return type to be generic");
-            genericType = returnType.GetGenericArguments()[0];
-            this.ValidateGeneratedEnumReference(invokeEnumRetType, genericType, /* expectNullable */ true);
+            propertyInfo = clientEntityType.GetProperty("DateTimeKindProp");
+            Assert.IsNotNull(propertyInfo, "The property DateTimeKindProp should have been generated because the enum was shared.");
+            Assert.AreEqual(typeof(DateTimeKind).FullName, propertyInfo.PropertyType.FullName, "Expected DateTimeKindProp to use FileAttributes");
         }
 
         [TestMethod]
@@ -375,20 +299,6 @@ namespace Luma.SimpleEntity.Tests
                     Assert.AreEqual(serverValue, clientValue, "[Display] had different values for Name arg for " + clientEnumType + "." + clientMemberNames[i]);
                 }
 
-                // Validate Description custom attribute propagates correctly
-                ComponentModelDescriptionAttribute descriptionAttr = (ComponentModelDescriptionAttribute)Attribute.GetCustomAttribute(serverFieldInfo, typeof(ComponentModelDescriptionAttribute));
-                if (descriptionAttr != null)
-                {
-                    IList<CustomAttributeData> cads = AssemblyGenerator.GetCustomAttributeData(clientFieldInfo, typeof(ComponentModelDescriptionAttribute));
-                    Assert.AreEqual(1, cads.Count, "Expected [Description] on " + clientEnumType + "." + clientMemberNames[i]);
-                    CustomAttributeData cad = cads[0];
-                    string clientValue = null;
-                    AssemblyGenerator.TryGetCustomAttributeValue<string>(cad, "Description", out clientValue);
-
-                    string serverValue = descriptionAttr.Description;
-                    Assert.AreEqual(serverValue, clientValue, "[Description] had different values for Description arg for " + clientEnumType + "." + clientMemberNames[i]);
-                }
-
                 // Validate ServerOnlyAttribute does not propagate
                 ServerOnlyAttribute serverOnlyAttr = (ServerOnlyAttribute)Attribute.GetCustomAttribute(serverFieldInfo, typeof(ServerOnlyAttribute));
                 if (serverOnlyAttr != null)
@@ -509,7 +419,6 @@ namespace EnumGen.Tests
 
     public enum EnumWithCustomAttributes
     {
-        [ComponentModelDescription("Description_of_None")]
         [Display(Name="Display_of_None")]
         [ServerOnlyAttribute]
         None = 0
@@ -581,7 +490,7 @@ namespace EnumGen.Tests
         public FlagEnum FlagProperty { get; set; }                          // validate [Flags] works
         internal PrivateEnum PrivateEnumProperty { get; set; }              // validate private enum is not generated
         public SizeEnumOther SizePropertyOther { get; set; }                // different namespace
-        public FileAttributes FileAttrProp { get; set; }                    // shared type
+        public DateTimeKind DateTimeKindProp { get; set; }                    // shared type
         public DataContractEnum DCEnumProp { get; set; }
 
         // all integral permutations

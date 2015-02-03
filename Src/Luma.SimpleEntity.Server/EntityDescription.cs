@@ -300,30 +300,30 @@ namespace Luma.SimpleEntity.Server
             errorMessage = null;
             if (!type.IsVisible)
             {
-                errorMessage = "Resource.EntityTypes_Must_Be_Public";
+                errorMessage = Resource.EntityTypes_Must_Be_Public;
             }
             else if (TypeUtility.IsNullableType(type))
             {
                 // why is this check here? can't we just assert that an entity type
                 // is not a value type?
-                errorMessage = "Resource.EntityTypes_Cannot_Be_Nullable";
+                errorMessage = Resource.EntityTypes_Cannot_Be_Nullable;
             }
             else if (type.IsGenericType)
             {
-                errorMessage = "Resource.EntityTypes_Cannot_Be_Generic";
+                errorMessage = Resource.EntityTypes_Cannot_Be_Generic;
             }
             else if (TypeUtility.IsPredefinedType(type))
             {
-                errorMessage = "Resource.EntityTypes_Cannot_Be_Primitives";
+                errorMessage = Resource.EntityTypes_Cannot_Be_Primitives;
             }
             else if (typeof(IEnumerable).IsAssignableFrom(type))
             {
-                errorMessage = "Resource.EntityTypes_Cannot_Be_Collections";
+                errorMessage = Resource.EntityTypes_Cannot_Be_Collections;
             }
             else if (!type.IsAbstract && type.GetConstructor(Type.EmptyTypes) == null)
             {
                 // Lack of ctor counts only if not abstract.
-                errorMessage = "Resource.EntityTypes_Must_Have_Default_Constructor";
+                errorMessage = Resource.EntityTypes_Must_Have_Default_Constructor;
             }
 
             return (errorMessage == null);
@@ -376,7 +376,7 @@ namespace Luma.SimpleEntity.Server
             string errorMessage;
             if (!IsValidEntityType(entityType, out errorMessage))
             {
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, "Resource.Invalid_Entity_Type", entityType.Name, errorMessage), "entityType");
+                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resource.Invalid_Entity_Type, entityType.Name, errorMessage), "entityType");
             }
 
             _entityTypes.Add(entityType);
@@ -832,15 +832,5 @@ namespace Luma.SimpleEntity.Server
             return this.EntityTypes.Where(et => et != entityType && entityType.IsAssignableFrom(et));
         }
 
-    }
-
-    public class Resource
-    {
-        public static string EntityDescription_MultipleVersionMembers = "EntityDescription_MultipleVersionMembers";
-        public static string Entity_Has_No_Key_Properties = "Entity_Has_No_Key_Properties";
-        public static string EntityDescription_DataContractAttributeRequired = "EntityDescription_DataContractAttributeRequired";
-        public static string InvalidAssociation_TypesDoNotAlign = "InvalidAssociation_TypesDoNotAlign";
-        public static string Entity_Property_Redefined = "Entity_Property_Redefined";
-        public static string Invalid_Entity_Property;
     }
 }

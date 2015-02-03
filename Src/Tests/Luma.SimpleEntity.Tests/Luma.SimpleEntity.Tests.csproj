@@ -132,6 +132,7 @@
     <Compile Include="AssemblyUtilitiesTest.cs" />
     <Compile Include="ClientCodeGenerationDispatcherTests.cs" />
     <Compile Include="CodeGenComplexTypesTests.cs" />
+    <Compile Include="CodeGenSuccessTests.cs" />
     <Compile Include="CodeMemberKeyTests.cs" />
     <Compile Include="DbContextUtilitiesTest.cs" />
     <Compile Include="DomainServiceClientCodeGeneratorAttributeTests.cs" />
