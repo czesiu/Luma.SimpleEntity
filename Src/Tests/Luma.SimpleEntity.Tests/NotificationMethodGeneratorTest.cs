@@ -57,12 +57,12 @@ namespace Luma.SimpleEntity.Tests
 
         public void PartialMethodsSnippetBlockTest(bool isCSharp)
         {
-            string comments = this.TestContext.DataRow["comments"].ToString();
-            string[] baseMethodNames = this.TestContext.DataRow["baseMethodNames"].ToString().Split(new char[] { ',' });
-            string paramDeclsArgs = this.TestContext.DataRow["parameters"].ToString();
+            var comments = TestContext.DataRow["comments"].ToString();
+            var baseMethodNames = TestContext.DataRow["baseMethodNames"].ToString().Split(new[] { ',' });
+            var paramDeclsArgs = TestContext.DataRow["parameters"].ToString();
 
-            NotificationMethodGenerator target = new NotificationMethodGenerator(CreateProxyGenerator(isCSharp));
-            CodeParameterDeclarationExpressionCollection expressions = GetCodeParameterDeclaraionExpressions(paramDeclsArgs);
+            var target = new NotificationMethodGenerator(CreateProxyGenerator(isCSharp));
+            var expressions = GetCodeParameterDeclaraionExpressions(paramDeclsArgs);
 
             foreach (string baseMethodName in baseMethodNames)
             {
@@ -72,7 +72,7 @@ namespace Luma.SimpleEntity.Tests
             // do verification ...
             if (XmlReader == null)
             {
-                XmlReader = XmlReader.Create(this.TestContext.TestDeploymentDir + "\\NotificationMethodGeneratorTestCodeSnippets.xml");
+                XmlReader = XmlReader.Create(TestContext.TestDeploymentDir + "\\NotificationMethodGeneratorTestCodeSnippets.xml");
             }
 
             do
@@ -94,7 +94,7 @@ namespace Luma.SimpleEntity.Tests
                 }
                 snippetstr += snippet.Text;
             }
-            Assert.AreEqual(snippetstr.Replace("\r\n", "").TrimEnd(), XmlReader.Value.Replace("\r\n", ""));
+            Assert.AreEqual(snippetstr.Replace("\r\n", "").TrimEnd(), XmlReader.Value);
         }
 
         [TestMethod]
