@@ -68,31 +68,31 @@ namespace Luma.SimpleEntity.Tests
         {
             string projectPath, outputPath;
             TestHelper.GetProjectPaths("STS1", out projectPath, out outputPath);
-            string clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
+            var clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
 
-            ConsoleLogger logger = new ConsoleLogger();
-            using (SharedCodeService sts = CodeGenHelper.CreateSharedCodeService(clientProjectPath, logger))
+            var logger = new ConsoleLogger();
+            using (var scs = CodeGenHelper.CreateSharedCodeService(clientProjectPath, logger))
             {
                 // TestEntity is shared because it is linked
-                CodeMemberShareKind shareKind = sts.GetTypeShareKind(typeof(TestEntity).AssemblyQualifiedName);
+                CodeMemberShareKind shareKind = scs.GetTypeShareKind(typeof(TestEntity).AssemblyQualifiedName);
                 Assert.AreEqual(CodeMemberShareKind.SharedByReference, shareKind, "Expected TestEntity type to be shared by reference");
 
                 // TestValidator is shared because it is linked
-                shareKind = sts.GetTypeShareKind(typeof(TestValidator).AssemblyQualifiedName);
+                shareKind = scs.GetTypeShareKind(typeof(TestValidator).AssemblyQualifiedName);
                 Assert.AreEqual(CodeMemberShareKind.SharedByReference, shareKind, "Expected TestValidator type to be shared by reference");
 
                 // SharedClass is shared because it is linked
-                shareKind = sts.GetTypeShareKind(typeof(SharedClass).AssemblyQualifiedName);
+                shareKind = scs.GetTypeShareKind(typeof(SharedClass).AssemblyQualifiedName);
                 Assert.IsTrue(shareKind == CodeMemberShareKind.SharedBySource, "Expected SharedClass type to be shared in source");
 
                 // TestValidatorServer exists only on the server and is not shared
-                shareKind = sts.GetTypeShareKind(typeof(TestValidatorServer).AssemblyQualifiedName);
+                shareKind = scs.GetTypeShareKind(typeof(TestValidatorServer).AssemblyQualifiedName);
                 Assert.IsTrue(shareKind == CodeMemberShareKind.NotShared, "Expected TestValidatorServer type not to be shared");
 
                 // CodelessType exists on both server and client, but lacks all user code necessary
                 // to determine whether it is shared.  Because it compiles into both projects, it should
                 // be considered shared by finding the type in both assemblies
-                shareKind = sts.GetTypeShareKind(typeof(CodelessType).AssemblyQualifiedName);
+                shareKind = scs.GetTypeShareKind(typeof(CodelessType).AssemblyQualifiedName);
                 Assert.IsTrue(shareKind == CodeMemberShareKind.SharedByReference, "Expected CodelessType type to be shared in assembly");
             }
         }
@@ -102,18 +102,17 @@ namespace Luma.SimpleEntity.Tests
         [TestMethod]
         public void SharedCodeService_Properties()
         {
-            string projectPath = null;
-            string outputPath = null;
+            string projectPath, outputPath;
             TestHelper.GetProjectPaths("STS2", out projectPath, out outputPath);
-            string clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
+            var clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
 
-            ConsoleLogger logger = new ConsoleLogger();
-            using (SharedCodeService sts = CodeGenHelper.CreateSharedCodeService(clientProjectPath, logger))
+            var logger = new ConsoleLogger();
+            using (var scs = CodeGenHelper.CreateSharedCodeService(clientProjectPath, logger))
             {
-                CodeMemberShareKind shareKind = sts.GetPropertyShareKind(typeof(TestEntity).AssemblyQualifiedName, "ServerAndClientValue");
+                CodeMemberShareKind shareKind = scs.GetPropertyShareKind(typeof(TestEntity).AssemblyQualifiedName, "ServerAndClientValue");
                 Assert.AreEqual(CodeMemberShareKind.SharedByReference, shareKind, "Expected TestEntity.ServerAndClientValue property to be shared by reference.");
 
-                shareKind = sts.GetPropertyShareKind(typeof(TestEntity).AssemblyQualifiedName, "TheValue");
+                shareKind = scs.GetPropertyShareKind(typeof(TestEntity).AssemblyQualifiedName, "TheValue");
                 Assert.AreEqual(CodeMemberShareKind.NotShared, shareKind, "Expected TestEntity.TheValue property not to be shared in source.");
             }
         }

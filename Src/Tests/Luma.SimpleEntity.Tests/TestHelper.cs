@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Luma.SimpleEntity;
-using Luma.SimpleEntity.Tests.Server.Test.Utilities;
 using Luma.SimpleEntity.Tests.Utilities;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -36,17 +34,16 @@ namespace Luma.SimpleEntity.Tests
         // breadcrumbs we can use to get back to it/
         public static void GetProjectPaths(string relativeTestDir, out string projectPath, out string outputPath)
         {
-            string projectPathRelativeFileName = Path.Combine(relativeTestDir, "ProjectPath.txt");
-            string projectPathFile = GetTestFileName(projectPathRelativeFileName);
-            projectPath = string.Empty;
-            outputPath = string.Empty;
-            string inputString = string.Empty;
-            using (StreamReader t1 = new StreamReader(projectPathFile))
+            var projectPathRelativeFileName = Path.Combine(relativeTestDir, "ProjectPath.txt");
+            var projectPathFile = GetTestFileName(projectPathRelativeFileName);
+            
+            string inputString;
+            using (var t1 = new StreamReader(projectPathFile))
             {
                 inputString = t1.ReadToEnd();
             }
 
-            string[] split = inputString.Split(',');
+            var split = inputString.Split(',');
             projectPath = split[0];
             outputPath = split[1];
         }
@@ -55,7 +52,7 @@ namespace Luma.SimpleEntity.Tests
         // Strips off code-gen boilerplate that may cause comparison problems
         public static void ValidateFilesEqual(string relativeTestDir, string relativeDeployDir, string generatedFileName, string referenceFileName, string language)
         {
-            string diffMessage = null;
+            string diffMessage;
 
             if (!FilesMatch(relativeTestDir, relativeDeployDir, generatedFileName, referenceFileName, language, out diffMessage))
             {

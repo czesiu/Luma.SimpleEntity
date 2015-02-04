@@ -91,10 +91,10 @@ namespace Luma.SimpleEntity.Tests
         [Description("EntityCatalog catches FileNotFoundException and emits an info message")]
         public void EntityCatalog_Message_FileNotFound()
         {
-            string assemblyFileName = @"c:\Nowhere\DontExist.dll";
-            ConsoleLogger logger = new ConsoleLogger();
-            EntityCatalog dsc = new EntityCatalog(new string[] { assemblyFileName }, logger);
-            ICollection<EntityDescription> descriptions = dsc.EntityDescriptions;
+            var assemblyFileName = @"c:\Nowhere\DontExist.dll";
+            var logger = new ConsoleLogger();
+            var dsc = new EntityCatalog(new[] { assemblyFileName }, logger);
+            var descriptions = dsc.EntityDescriptions;
             Assert.IsNotNull(descriptions);
             Assert.AreEqual(0, descriptions.Count);
             Assert.AreEqual(0, logger.ErrorMessages.Count);
@@ -189,12 +189,7 @@ namespace Luma.SimpleEntity.Tests
                 return false;
             }
 
-            if (!typeof(Entity).IsAssignableFrom(t))
-            {
-                return false;
-            }
-
-            object[] attrs = t.GetCustomAttributes(typeof(KeyAttribute), false);
+            var attrs = t.GetCustomAttributes(typeof(KeyAttribute), false);
 
             return attrs.Length > 0;
         }

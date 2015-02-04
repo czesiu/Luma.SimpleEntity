@@ -4,11 +4,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Luma.SimpleEntity.Helpers;
+using RequiredAttribute = System.ComponentModel.DataAnnotations.RequiredAttribute;
 
 namespace Luma.SimpleEntity.Server
 {
@@ -47,8 +49,9 @@ namespace Luma.SimpleEntity.Server
             {
                 if (_entityKnownTypes == null)
                 {
-                    _entityKnownTypes = this.ComputeEntityKnownTypes();
+                    _entityKnownTypes = ComputeEntityKnownTypes();
                 }
+
                 return _entityKnownTypes;
             }
         }
@@ -70,31 +73,6 @@ namespace Luma.SimpleEntity.Server
         }
 
         /// <summary>
-        /// If the specified Type is the child of a compositional relationship
-        /// this method returns all the compositional associations that compose the
-        /// Type.
-        /// </summary>
-        /// <param name="entityType">The Type to get parent associations for.</param>
-        /// <returns>Collection of <see cref="PropertyDescriptor"/>s for each parent association. May be empty.</returns>
-        public IEnumerable<PropertyDescriptor> GetParentAssociations(Type entityType)
-        {
-            this.EnsureInitialized();
-
-            if (entityType == null)
-            {
-                throw new ArgumentNullException("entityType");
-            }
-
-            List<PropertyDescriptor> assocList = null;
-            if (_compositionMap.TryGetValue(entityType, out assocList))
-            {
-                return assocList.AsReadOnly();
-            }
-
-            return Enumerable.Empty<PropertyDescriptor>();
-        }
-
-        /// <summary>
         /// Returns the root type for the given entity type.
         /// </summary>
         /// <remarks>
@@ -112,7 +90,7 @@ namespace Luma.SimpleEntity.Server
             Type rootType = null;
             while (entityType != null)
             {
-                if (this.EntityTypes.Contains(entityType))
+                if (EntityTypes.Contains(entityType))
                 {
                     rootType = entityType;
                 }
@@ -159,7 +137,7 @@ namespace Luma.SimpleEntity.Server
         /// </summary>
         public void Initialize()
         {
-            if (this._isInitialized == true)
+            if (_isInitialized)
             {
                 return;
             }
@@ -203,7 +181,8 @@ namespace Luma.SimpleEntity.Server
                         continue;
                     }
 
-                    Type memberType = TypeUtility.GetElementType(pd.PropertyType);
+                    var memberType = TypeUtility.GetElementType(pd.PropertyType);
+
                     if (IsValidEntityType(memberType))
                     {
                         AddEntityType(memberType);
@@ -219,32 +198,7 @@ namespace Luma.SimpleEntity.Server
         /// <returns>true if the type is a known entity type; false otherwise.</returns>
         internal bool IsKnownEntityType(Type type)
         {
-            return this._entityTypes.Contains(type);
-        }
-
-        /// <summary>
-        /// Checks whether the specified type is a composed entity type.
-        /// </summary>
-        /// <param name="type">The type to check.</param>
-        /// <returns>true if the type is a composed entity type; false otherwise.</returns>
-        internal bool IsComposedEntityType(Type type)
-        {
-            // Our convention is that the compositionMap has entries only for types having
-            // parent associations, including inherited ones.
-            List<PropertyDescriptor> parentAssociations = null;
-            return this._compositionMap.TryGetValue(type, out parentAssociations);
-        }
-
-        /// <summary>
-        /// Verifies that the description is still in an uninitialized state. A description
-        /// can only be modified/configured before it has been initialized.
-        /// </summary>
-        private void CheckInvalidUpdate()
-        {
-            if (_isInitialized)
-            {
-                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.EntityDescription_InvalidUpdate"));
-            }
+            return _entityTypes.Contains(type);
         }
 
         /// <summary>
@@ -296,8 +250,8 @@ namespace Luma.SimpleEntity.Server
         /// <returns><c>true</c> if the type can legally be used as an entity</returns>
         private static bool IsValidEntityType(Type type, out string errorMessage)
         {
-            
             errorMessage = null;
+
             if (!type.IsVisible)
             {
                 errorMessage = Resource.EntityTypes_Must_Be_Public;
@@ -337,9 +291,9 @@ namespace Luma.SimpleEntity.Server
 
         public void TryAddEntityType(Type type)
         {
-            if (!_entityTypes.Contains(type))
+            if (!IsKnownEntityType(type))
             {
-                RegisterCustomTypeDescriptor(new AssociatedMetadataTypeTypeDescriptionProvider(type), type);
+                RegisterCustomTypeDescriptors(type);
 
                 var typeAttributes = TypeDescriptor.GetAttributes(type);
                 if (typeAttributes[typeof(EntityAttribute)] != null)
@@ -366,7 +320,7 @@ namespace Luma.SimpleEntity.Server
         /// <param name="entityType">type of entity to add</param>
         public void AddEntityType(Type entityType)
         {
-            if (_entityTypes.Contains(entityType))
+            if (IsKnownEntityType(entityType))
             {
                 // we've already visited this type
                 return;
@@ -376,7 +330,8 @@ namespace Luma.SimpleEntity.Server
             string errorMessage;
             if (!IsValidEntityType(entityType, out errorMessage))
             {
-                throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Resource.Invalid_Entity_Type, entityType.Name, errorMessage), "entityType");
+                Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, Resource.Invalid_Entity_Type, entityType.Name, errorMessage));
+                return;
             }
 
             _entityTypes.Add(entityType);
@@ -386,27 +341,10 @@ namespace Luma.SimpleEntity.Server
 
             RegisterCustomTypeDescriptors(entityType);
 
-            // visit all properties and do any required validation or initialization processing
-            foreach (PropertyDescriptor pd in TypeDescriptor.GetProperties(entityType))
-            {
-                //if (!TypeUtility.IsPredefinedType(pd.PropertyType))
-                //{
-                //    if (pd.Attributes[typeof(ExcludeAttribute)] == null)
-                //    {
-                //        Type potentialEntityType = TypeUtility.GetElementType(pd.PropertyType);
-                //        if (!IsValidEntityType(potentialEntityType, out errorMessage))
-                //        {
-                //            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture,
-                //                "Resource.Invalid_Entity_Property", entityType.FullName, pd.Name));
-                //        }
-                //    }
-                //}
-            }
-
             // Recursively add any derived entity types specified by [KnownType]
             // attributes
-            IEnumerable<Type> knownTypes = KnownTypeUtilities.ImportKnownTypes(entityType, true);
-            foreach (Type t in knownTypes)
+            var knownTypes = KnownTypeUtilities.ImportKnownTypes(entityType, true);
+            foreach (var t in knownTypes)
             {
                 if (entityType.IsAssignableFrom(t))
                 {
@@ -426,7 +364,7 @@ namespace Luma.SimpleEntity.Server
         /// <param name="entityType">The entity type to validate.</param>
         private static void ValidatePropertyPolymorphism(Type entityType)
         {
-            System.Diagnostics.Debug.Assert(entityType != null, "entityType is required");
+            Debug.Assert(entityType != null, "entityType is required");
 
             // We consider only actual properties, not TDP properties, because
             // these are the only ones that can have actual runtime methods
@@ -482,7 +420,7 @@ namespace Luma.SimpleEntity.Server
                     {
                         if (pd.Attributes[typeof(ExcludeAttribute)] == null)
                         {
-                            bool hasKey = (pd.Attributes[typeof(KeyAttribute)] != null);
+                            var hasKey = (pd.Attributes[typeof(KeyAttribute)] != null);
 
                             // The presence of a [Key] property matters for the root type
                             // regardless if it is actually declared there or on some hidden
@@ -510,7 +448,7 @@ namespace Luma.SimpleEntity.Server
                 ValidateEntityAssociations(entityType, pds);
 
                 // Validate derived entity types don't attempt illegal polymorphism
-                EntityDescription.ValidatePropertyPolymorphism(entityType);
+                ValidatePropertyPolymorphism(entityType);
 
                 // Validate that:
                 //  - The root type must declare a [KnownType] for every derived type
@@ -594,7 +532,7 @@ namespace Luma.SimpleEntity.Server
                 {
                     // No current associations -- simply share the base class's list
                     parentAssociations = inheritedParentAssociations;
-                    this._compositionMap[entityType] = parentAssociations;
+                    _compositionMap[entityType] = parentAssociations;
                 }
                 else
                 {
@@ -720,7 +658,7 @@ namespace Luma.SimpleEntity.Server
                 {
                     throw new InvalidOperationException(string.Format(
                         CultureInfo.CurrentCulture,
-                        "Resource.InvalidAssociation_FKNotSingleton",
+                        Resource.InvalidAssociation_FKNotSingleton,
                         assocName, entityType));
                 }
 
@@ -733,7 +671,7 @@ namespace Luma.SimpleEntity.Server
                 }
 
                 // if the other entity is also exposed by the service, perform additional validation
-                if (this._entityTypes.Contains(otherEntityType))
+                if (_entityTypes.Contains(otherEntityType))
                 {
                     PropertyDescriptorCollection otherEntityProperties = TypeDescriptor.GetProperties(otherEntityType);
                     PropertyDescriptor otherMember = otherEntityProperties.Cast<PropertyDescriptor>().FirstOrDefault(p => p.Name != pd.Name && p.Attributes.OfType<AssociationAttribute>().Any(a => a.Name == assocName));
@@ -746,7 +684,7 @@ namespace Luma.SimpleEntity.Server
                             !((assocAttrib.IsForeignKey != otherAssocAttrib.IsForeignKey)
                              && (assocAttrib.IsForeignKey || otherAssocAttrib.IsForeignKey)))
                         {
-                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.InvalidAssociation_IsFKInvalid", assocName, entityType));
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.InvalidAssociation_IsFKInvalid, assocName, entityType));
                         }
 
                         Type otherMemberEntityType = TypeUtility.GetElementType(otherMember.PropertyType);
@@ -767,7 +705,7 @@ namespace Luma.SimpleEntity.Server
                     {
                         if (otherEntityProperties[otherKey] == null)
                         {
-                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.InvalidAssociation_OtherKeyNotFound", assocName, entityType, otherKey, otherEntityType));
+                            throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.InvalidAssociation_OtherKeyNotFound, assocName, entityType, otherKey, otherEntityType));
                         }
                     }
                 }
@@ -777,7 +715,7 @@ namespace Luma.SimpleEntity.Server
                     if (TypeUtility.IsPredefinedType(otherEntityType))
                     {
                         // Association attributes cannot be attached to properties whose types are not entities
-                        throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, "Resource.Association_Not_Entity_Type", pd.Name, entityType.Name, otherEntityType.Name));
+                        throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Resource.Association_Not_Entity_Type, pd.Name, entityType.Name, otherEntityType.Name));
                     }
                 }
             }
@@ -829,7 +767,7 @@ namespace Luma.SimpleEntity.Server
         public IEnumerable<Type> GetEntityDerivedTypes(Type entityType)
         {
             System.Diagnostics.Debug.Assert(entityType != null, "GetEntityDerivedTypes(null) not allowed");
-            return this.EntityTypes.Where(et => et != entityType && entityType.IsAssignableFrom(et));
+            return EntityTypes.Where(et => et != entityType && entityType.IsAssignableFrom(et));
         }
 
     }

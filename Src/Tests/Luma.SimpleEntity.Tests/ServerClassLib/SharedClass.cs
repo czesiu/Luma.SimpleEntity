@@ -1,4 +1,6 @@
-﻿namespace ServerClassLib
+﻿#if !PCL
+
+namespace ServerClassLib
 {
     /// <summary>
     /// This class will compile only in the server project.
@@ -10,3 +12,5 @@
         public void SharedMethod() { }
     }
 }
+
+#endif

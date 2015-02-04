@@ -419,6 +419,7 @@ namespace Luma.SimpleEntity.Tests
                     {
                         continue;
                     }
+
                     try
                     {
                         Assembly refAssy = Assembly.ReflectionOnlyLoadFrom(refAssyName);
@@ -433,8 +434,8 @@ namespace Luma.SimpleEntity.Tests
                 assy = Assembly.ReflectionOnlyLoadFrom(generatedAssemblyFileName);
                 Assert.IsNotNull(assy);
 
-                AssemblyName[] refNames = assy.GetReferencedAssemblies();
-                foreach (AssemblyName refName in refNames)
+                var refNames = assy.GetReferencedAssemblies();
+                foreach (var refName in refNames)
                 {
                     if (refName.FullName.Contains("mscorlib"))
                     {

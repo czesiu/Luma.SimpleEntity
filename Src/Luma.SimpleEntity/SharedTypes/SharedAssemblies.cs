@@ -343,12 +343,17 @@ namespace Luma.SimpleEntity.Tools.SharedTypes
 
             var loadedAssemblies = new Dictionary<string, Assembly>();
 
-            _assemblyFileNames.Reverse();
+            //_assemblyFileNames.Reverse();
 
             foreach (string file in _assemblyFileNames)
             {
                 // Pass 1 -- load all the assemblies we have been given.  No referenced assemblies yet.
-                Assembly assembly = AssemblyUtilities.ReflectionOnlyLoadFrom(file, _logger);
+                if (file.EndsWith("mscorlib.dll") || file.EndsWith("System.Runtime.dll"))
+                {
+                    continue;
+                }
+
+                var assembly = AssemblyUtilities.ReflectionOnlyLoadFrom(file, _logger);
                 if (assembly != null)
                 {
                     _assemblies.Add(assembly);

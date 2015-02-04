@@ -65,7 +65,7 @@ namespace Luma.SimpleEntity
 
 
             AddEntityDescriptions(entityTypes);
-            
+
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Luma.SimpleEntity
             var entityDescription = new EntityDescription();
 
             foreach (var entityType in entityTypes)
-            { 
+            {
                 try
                 {
                     entityDescription.AddEntityType(entityType);

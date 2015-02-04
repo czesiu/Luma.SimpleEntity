@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.ComponentModel.DataAnnotations;
-
-namespace ServerClassLib
+﻿namespace ServerClassLib
 {
     // This type has no user code, which means the PDB
     // will have no sequence points for it.  We use it

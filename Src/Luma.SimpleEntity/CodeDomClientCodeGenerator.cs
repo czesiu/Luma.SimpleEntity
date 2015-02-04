@@ -241,18 +241,6 @@ namespace Luma.SimpleEntity
             // OrderBy type name of entity to give code-gen predictability
             foreach (var dsd in allDescriptions)
             {
-                // If we detect the client already has the DomainContext we would have
-                // generated, skip it. This condition arises when the client has references
-                // to class libraries as well as a code-gen link to the server which has
-                // references to the server-side equivalent libraries.  Without this check, we would
-                // re-generate the same DomainContext that already lives in the class library.
-                CodeMemberShareKind domainContextShareKind = GetEntityTypeMemberShareKind(dsd);
-                if ((domainContextShareKind & CodeMemberShareKind.Shared) != 0)
-                {
-                    LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.Shared_DomainContext_Skipped));
-                    continue;
-                }
-
                 // Log information level message to help users see progress and debug code-gen issues
                 LogMessage(string.Format(CultureInfo.CurrentCulture, Resource.CodeGen_Generating));
 
@@ -296,12 +284,6 @@ namespace Luma.SimpleEntity
             }
 
             return generatedCode;
-        }
-
-        private CodeMemberShareKind GetEntityTypeMemberShareKind(EntityDescription dsd)
-        {
-            // TODO: Do it
-            return 0;
         }
 
         /// <summary>

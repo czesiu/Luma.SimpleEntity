@@ -53,8 +53,8 @@ namespace Luma.SimpleEntity.Tests
         {
             string projectPath, outputPath;
             TestHelper.GetProjectPaths("SAT", out projectPath, out outputPath);
-            string clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
-            List<string> assemblies = CodeGenHelper.ClientClassLibReferences(clientProjectPath, true);
+            var clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
+            var assemblies = CodeGenHelper.ClientClassLibReferences(clientProjectPath, true);
 
             var logger = new ConsoleLogger();
             var sa = new SharedAssemblies(assemblies, Enumerable.Empty<string>(), logger);

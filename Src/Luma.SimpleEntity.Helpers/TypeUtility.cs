@@ -21,6 +21,7 @@ namespace Luma.SimpleEntity.Helpers
             "b77a5c561934e089", // mscorlib, System, System.ComponentModel.Composition, and System.Core
             "31bf3856ad364e35", // System.ComponentModel.DataAnnotations
             "b03f5f7f11d50a3a", // Microsoft.VisualBasic, Microsoft.CSharp, System.Configuration
+            "7cec85d7bea7798e", // PCL mscorlib
             SimpleEntityPublicKeyToken, // Luma.SimpleEntity.
         };
 
@@ -512,12 +513,13 @@ namespace Luma.SimpleEntity.Helpers
             }
 
             // parse the public key token
-            int idx = assemblyFullName.IndexOf("PublicKeyToken=", StringComparison.OrdinalIgnoreCase);
-            if (idx == 0)
+            var idx = assemblyFullName.IndexOf("PublicKeyToken=", StringComparison.OrdinalIgnoreCase);
+            if (idx == 0 || assemblyFullName.Length < idx + 31)
             {
                 return false;
             }
-            string publicKeyToken = assemblyFullName.Substring(idx + 15);
+
+            var publicKeyToken = assemblyFullName.Substring(idx + 15, 16);
 
             return SystemAssemblyPublicKeyTokens.Any(p => p.Equals(publicKeyToken, StringComparison.OrdinalIgnoreCase));
         }

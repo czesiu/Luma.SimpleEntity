@@ -126,7 +126,7 @@ namespace Luma.SimpleEntity.Tests
             // Create a shared type service that says the entity's attribute is "shared" when asked whether it is shared
             var mockSts = new MockSharedCodeService(new Type[0], new MethodBase[0], new string[0]);
 
-            var generatedCode = TestHelper.GenerateCode("C#", new Type[] { typeof(Mock_CG_Shared_Entity) }, logger, mockSts);
+            var generatedCode = TestHelper.GenerateCode("C#", new[] { typeof(Mock_CG_Shared_Entity) }, logger, mockSts);
 
             Assert.IsFalse(string.IsNullOrEmpty(generatedCode), "Code should have been generated");
 
@@ -135,7 +135,7 @@ namespace Luma.SimpleEntity.Tests
         }
     }
 
-    public class X
+    public struct X
     {
         
     }

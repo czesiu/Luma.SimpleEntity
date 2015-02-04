@@ -184,8 +184,9 @@ namespace Luma.SimpleEntity
             // Ensure this assembly itself is shown in our loaded list
             loadedAssemblies[assembly.FullName] = assembly;
 
-            AssemblyName[] assemblyReferences = assembly.GetReferencedAssemblies();
-            foreach (AssemblyName name in assemblyReferences)
+            var assemblyReferences = assembly.GetReferencedAssemblies();
+
+            foreach (var name in assemblyReferences)
             {
                 // We cannot load MSCorLib into an RO load.
                 // Attempting to load the SL version will only return the already loaded MSCorlib
@@ -194,14 +195,14 @@ namespace Luma.SimpleEntity
                     continue;
                 }
 
-                Assembly referenceAssembly = null;
+                Assembly referenceAssembly;
 
                 // It may have been loaded already.  If so, assume that means we already
                 // followed down its references.  Otherwise, load it and honor the
                 // request to recursively load its references.
                 if (!loadedAssemblies.TryGetValue(name.FullName, out referenceAssembly))
                 {
-                    referenceAssembly = AssemblyUtilities.ReflectionOnlyLoad(name, assemblySearchPaths, logger);
+                    referenceAssembly = ReflectionOnlyLoad(name, assemblySearchPaths, logger);
 
                     // Note: we always put the result into our cache, even for failure.
                     // This prevents us from attempting to load it multiple times
@@ -412,7 +413,7 @@ namespace Luma.SimpleEntity
         }
 
         /// <summary>
-        /// Determines whether the given assembly is mscorlib
+        /// Determines whether the given assembly is mscorlib or other runtime equivalent of mscorlib
         /// </summary>
         /// <param name="assemblyName">assembly name to test</param>
         /// <returns><c>true</c> if the assembly is mscorlib</returns>
