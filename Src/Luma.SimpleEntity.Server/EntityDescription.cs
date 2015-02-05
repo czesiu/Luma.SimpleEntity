@@ -262,10 +262,6 @@ namespace Luma.SimpleEntity.Server
                 // is not a value type?
                 errorMessage = Resource.EntityTypes_Cannot_Be_Nullable;
             }
-            else if (type.IsGenericType)
-            {
-                errorMessage = Resource.EntityTypes_Cannot_Be_Generic;
-            }
             else if (TypeUtility.IsPredefinedType(type))
             {
                 errorMessage = Resource.EntityTypes_Cannot_Be_Primitives;

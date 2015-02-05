@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Luma.SimpleEntity.TestHelpers;
 using Luma.SimpleEntity.Tests.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -130,8 +131,9 @@ namespace Luma.SimpleEntity.Tests
 
             Assert.IsFalse(string.IsNullOrEmpty(generatedCode), "Code should have been generated");
 
-            string entityWarning = String.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_PropertyType_Not_Shared, "XElementProperty", typeof(Mock_CG_Shared_Entity).FullName, typeof(X).FullName, "MockProject");
-            TestHelper.AssertContainsWarnings(logger, entityWarning);
+            TestHelper.AssertGeneratedCodeDoesNotContain("XProperty");
+            //string entityWarning = String.Format(CultureInfo.CurrentCulture, Resource.ClientCodeGen_PropertyType_Not_Shared, "XProperty", typeof(Mock_CG_Shared_Entity).FullName, typeof(X).FullName, "MockProject");
+            //TestHelper.AssertContainsWarnings(logger, entityWarning);
         }
     }
 
@@ -146,6 +148,6 @@ namespace Luma.SimpleEntity.Tests
         public string TheKey { get; set; }
 
         // This property type will be defined as "unshared" in the unit tests
-        public X XElementProperty { get; set; }
+        public X XProperty { get; set; }
     }
 }

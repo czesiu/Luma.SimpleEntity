@@ -123,24 +123,23 @@ namespace Luma.SimpleEntity.Tests
         [TestMethod]
         public void SharedCodeService_Methods()
         {
-            string projectPath = null;
-            string outputPath = null;
+            string projectPath, outputPath;
             TestHelper.GetProjectPaths("STS4", out projectPath, out outputPath);
-            string clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
+            var clientProjectPath = CodeGenHelper.ClientClassLibProjectPath(projectPath);
 
-            ConsoleLogger logger = new ConsoleLogger();
-            using (SharedCodeService sts = CodeGenHelper.CreateSharedCodeService(clientProjectPath, logger))
+            var logger = new ConsoleLogger();
+            using (var scs = CodeGenHelper.CreateSharedCodeService(clientProjectPath, logger))
             {
-                CodeMemberShareKind shareKind = sts.GetMethodShareKind(typeof(TestValidator).AssemblyQualifiedName, "IsValid", new string[] { typeof(TestEntity).AssemblyQualifiedName, typeof(ValidationContext).AssemblyQualifiedName });
+                CodeMemberShareKind shareKind = scs.GetMethodShareKind(typeof(TestValidator).AssemblyQualifiedName, "IsValid", new string[] { typeof(TestEntity).AssemblyQualifiedName, typeof(ValidationContext).AssemblyQualifiedName });
                 Assert.AreEqual(CodeMemberShareKind.SharedByReference, shareKind, "Expected TestValidator.IsValid to be shared by reference");
 
-                shareKind = sts.GetMethodShareKind(typeof(TestEntity).AssemblyQualifiedName, "ServerAndClientMethod", new string[0]);
+                shareKind = scs.GetMethodShareKind(typeof(TestEntity).AssemblyQualifiedName, "ServerAndClientMethod", new string[0]);
                 Assert.AreEqual(CodeMemberShareKind.SharedByReference, shareKind, "Expected TestValidator.ServerAndClientMethod to be shared by reference");
 
-                shareKind = sts.GetMethodShareKind(typeof(TestEntity).AssemblyQualifiedName, "ServerMethod", new string[0]);
+                shareKind = scs.GetMethodShareKind(typeof(TestEntity).AssemblyQualifiedName, "ServerMethod", new string[0]);
                 Assert.AreEqual(CodeMemberShareKind.NotShared, shareKind, "Expected TestValidator.ServerMethod not to be shared");
 
-                shareKind = sts.GetMethodShareKind(typeof(TestValidatorServer).AssemblyQualifiedName, "IsValid", new string[] { typeof(TestEntity).AssemblyQualifiedName, typeof(ValidationContext).AssemblyQualifiedName });
+                shareKind = scs.GetMethodShareKind(typeof(TestValidatorServer).AssemblyQualifiedName, "IsValid", new string[] { typeof(TestEntity).AssemblyQualifiedName, typeof(ValidationContext).AssemblyQualifiedName });
                 Assert.AreEqual(CodeMemberShareKind.NotShared, shareKind, "Expected TestValidator.IsValid not to be shared");
 
                 TestHelper.AssertNoErrorsOrWarnings(logger);

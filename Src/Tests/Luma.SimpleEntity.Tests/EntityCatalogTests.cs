@@ -32,7 +32,7 @@ namespace Luma.SimpleEntity.Tests
 
             // Ctor taking multiple types -- null arg tests
             ExceptionHelper.ExpectArgumentNullExceptionStandard(() => new EntityCatalog((IEnumerable<Type>)null, logger), "entityTypes");
-            ExceptionHelper.ExpectArgumentNullExceptionStandard(() => new EntityCatalog(new[] { typeof(DSC_Entity) }, null), "logger");
+            ExceptionHelper.ExpectArgumentNullExceptionStandard(() => new EntityCatalog(new[] { typeof(EC_Entity) }, null), "logger");
 
             // Ctor taking assemblies -- legit
             string[] realAssemblies = new string[] { this.GetType().Assembly.Location,
@@ -41,10 +41,21 @@ namespace Luma.SimpleEntity.Tests
             // Assembly based ctors are tested more deeply in other test methods
 
             // Ctor taking multiple type -- legit
-            var dsc = new EntityCatalog(new[] { typeof(DSC_Entity) }, logger);
+            var dsc = new EntityCatalog(new[] { typeof(EC_Entity) }, logger);
             var descriptions = dsc.EntityDescriptions;
             Assert.IsNotNull(descriptions, "Did not expect null descriptions");
             Assert.AreEqual(1, descriptions.Count(), "Expected exactly one domain service description");
+        }
+
+        [TestMethod]
+        [Description("Entity type with no default constructor")]
+        public void EntityCatalog_Ignore_Entity_No_Default_Constructor()
+        {
+            var logger = new ConsoleLogger();
+            var dsc = new EntityCatalog(new [] { typeof(EC_Entity_No_Default_Constructor) }, logger);
+            var descriptions = dsc.EntityDescriptions;
+            Assert.IsNotNull(descriptions);
+            Assert.AreEqual(0, descriptions.Count);
         }
 
         [Ignore]
@@ -81,8 +92,8 @@ namespace Luma.SimpleEntity.Tests
                 }
             }
 
-            EntityCatalog dsc = new EntityCatalog(assemblies, logger);
-            ICollection<EntityDescription> descriptions = dsc.EntityDescriptions;
+            var dsc = new EntityCatalog(assemblies, logger);
+            var descriptions = dsc.EntityDescriptions;
             Assert.IsNotNull(descriptions);
             Assert.IsTrue(descriptions.Count >= expectedEntities);
         }
@@ -195,7 +206,20 @@ namespace Luma.SimpleEntity.Tests
         }
     }
 
-    public class DSC_Entity
+    public class EC_Entity_No_Default_Constructor
+    {
+        [Key]
+        public int KeyField { get; set; }
+
+        public string StringField { get; set; }
+
+        private EC_Entity_No_Default_Constructor()
+        {
+            //
+        }
+    }
+
+    public class EC_Entity
     {
        [Key] public string TheKey {get;set;}
     }
