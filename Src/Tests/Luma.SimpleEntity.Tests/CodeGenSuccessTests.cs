@@ -8,6 +8,7 @@ namespace Luma.SimpleEntity.Tests
     [TestClass]
     public class CodeGenSuccessTests
     {
+        [Ignore]
         [TestMethod]
         [Description("Verifies errors are generated when a non-simple type is used as a Dictionary generic argument.")]
         public void CodeGen_DictionaryProperty()

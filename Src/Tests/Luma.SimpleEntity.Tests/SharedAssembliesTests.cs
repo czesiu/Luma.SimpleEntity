@@ -59,7 +59,7 @@ namespace Luma.SimpleEntity.Tests
             var logger = new ConsoleLogger();
             var sa = new SharedAssemblies(assemblies, Enumerable.Empty<string>(), logger);
 
-            MethodBase sharedMethod = sa.GetSharedMethod(typeof(TestValidator).AssemblyQualifiedName, "IsValid", new[] { typeof(TestEntity).AssemblyQualifiedName, typeof(ValidationContext).AssemblyQualifiedName });
+            var sharedMethod = sa.GetSharedMethod(typeof(TestValidator).AssemblyQualifiedName, "IsValid", new[] { typeof(TestEntity).AssemblyQualifiedName, typeof(ValidationContext).AssemblyQualifiedName });
             Assert.IsNotNull(sharedMethod, "Expected TestValidator.IsValid to be shared");
             Assert.IsTrue(sharedMethod.DeclaringType.Assembly.Location.Contains("ClientClassLib"), "Expected to find method in client class lib");
 

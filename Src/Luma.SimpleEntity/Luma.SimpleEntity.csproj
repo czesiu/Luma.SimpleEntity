@@ -213,7 +213,7 @@
     <Content Include="Pdb\ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Luma.SimpleEntity.Client.targets">
+    <None Include="Luma.SimpleEntity.CodeGen.targets">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />

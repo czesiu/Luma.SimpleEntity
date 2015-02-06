@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+	<metadata>
+		<id>Luma.SimpleEntity.Server</id>
+		<version>1.0.0.0</version>
+		<title>Simple Entity Server</title>
+		<authors>Luma Software</authors>
+		<owners>Luma Software</owners>
+		<licenseUrl>https://github.com/czesiu/Luma.SimpleEntity/blob/master/LICENSE</licenseUrl>
+		<projectUrl>https://github.com/czesiu/Luma.SimpleEntity</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Luma.SimpleEntity.Server provides attributes for controlling client side entity classes generation.</description>
+		<summary>Simple Entity - Server-side containing attributes for controlling client side entity classes generation.</summary>
+		<releaseNotes />
+		<copyright>Luma Software</copyright>
+		<language>en-US</language>
+		<tags>SimpleEntity Server</tags>
+	</metadata>
+	<files>
+		<file src="..\Src\Luma.SimpleEntity.Server\bin\Release\Luma.SimpleEntity.Helpers.dll" target="lib\Luma.SimpleEntity.Helpers.dll" />
+		<file src="..\Src\Luma.SimpleEntity.Server\bin\Release\Luma.SimpleEntity.Server.dll" target="lib\Luma.SimpleEntity.Server.dll" />
+	</files>
+</package>

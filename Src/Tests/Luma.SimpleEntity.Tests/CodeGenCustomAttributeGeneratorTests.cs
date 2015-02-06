@@ -82,19 +82,19 @@ namespace Luma.SimpleEntity.Tests
         [Description("CustomAttributeGenerator emits error in generated code when cannot determine attribute is shared")]
         public void CodeGen_CustomAttrGen_AttributeType_Shared_Unknowable()
         {
-            ConsoleLogger logger = new ConsoleLogger();
+            var logger = new ConsoleLogger();
 
             // Create a shared type service that says the entity's attribute is "unknowable" when asked whether it is shared
-            MockSharedCodeService mockSts = new MockSharedCodeService(
+            var mockSts = new MockSharedCodeService(
                     new Type[] { typeof(Mock_CG_Attr_Gen_Type) },
                     new MethodBase[0],
                     new string[0]);
             mockSts.AddUnknowableType(typeof(Mock_CG_Attr_Gen_TestAttribute));
 
-            string generatedCode = TestHelper.GenerateCode("C#", new Type[] { typeof(Mock_CG_Attr_Gen_Entity) }, logger, mockSts);
+            var generatedCode = TestHelper.GenerateCode("C#", new[] { typeof(Mock_CG_Attr_Gen_Entity) }, logger, mockSts);
             TestHelper.AssertNoErrorsOrWarnings(logger);
 
-            string warningComment = string.Format(
+            var warningComment = string.Format(
                     CultureInfo.CurrentCulture,
                     Resource.ClientCodeGen_Attribute_RequiresShared_NoPDB,
                     typeof(Mock_CG_Attr_Gen_TestAttribute),

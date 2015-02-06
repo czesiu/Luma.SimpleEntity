@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+	<metadata>
+		<id>Luma.SimpleEntity.CodeGen</id>
+		<version>1.0.0.0</version>
+		<title>Simple Entity Client Code Generator</title>
+		<authors>Luma Software</authors>
+		<owners>Luma Software</owners>
+		<licenseUrl>https://github.com/czesiu/Luma.SimpleEntity/blob/master/LICENSE</licenseUrl>
+		<projectUrl>https://github.com/czesiu/Luma.SimpleEntity</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Luma.SimpleEntity.CodeGen provides the MsBuild Tasks to generate client entity class with metadata attributes for validation, INotifyPropertyChanged implementation and others.</description>
+		<summary>Simple Entity - Code generation client assemblies and targets.</summary>
+		<releaseNotes />
+		<copyright>Luma Software</copyright>
+		<language>en-US</language>
+		<tags>SimpleEntity Client Entity Generator CodeGen</tags>
+	</metadata>
+	<files>
+		<file src="..\Src\Luma.SimpleEntity\bin\Release\Luma.SimpleEntity.CodeGen.targets" target="build\Luma.SimpleEntity.CodeGen.targets"/>
+		<file src="..\Src\Luma.SimpleEntity\bin\Release\Luma.SimpleEntity.dll" target="build\Luma.SimpleEntity.dll"/>
+		<file src="..\Src\Luma.SimpleEntity\bin\Release\Luma.SimpleEntity.Helpers.dll" target="build\Luma.SimpleEntity.Helpers.dll"/>
+		<file src="..\Src\Luma.SimpleEntity\bin\Release\Luma.SimpleEntity.Server.dll" target="build\Luma.SimpleEntity.Server.dll"/>
+	</files>
+</package>
